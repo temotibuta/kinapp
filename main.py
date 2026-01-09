@@ -15,8 +15,8 @@ import re
 from datetime import datetime
 app = FastAPI()
 
-# ★ Gemini API Key (環境変数から取得、なければデフォルトを使用)
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyCQoETQmsdRzsLSHJzCNI5Ls_YhY4ccY4o")
+# ★ Gemini API Key (環境変数からのみ取得)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
 

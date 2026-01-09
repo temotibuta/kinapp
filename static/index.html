@@ -1,0 +1,1829 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KinApp - Motivational Workout</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="/static/manifest.json">
+
+  <!-- iOS PWA Support -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KinApp">
+  <link rel="apple-touch-icon" href="/static/icon-192.png">
+
+  <!-- Theme Color -->
+  <meta name="theme-color" content="#affc41">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap');
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    :root {
+      /* Palette: Motivational Dark Mode */
+      --primary: #affc41;
+      /* Nike Volt / Neon Lime */
+      --primary-hover: #96d936;
+      --primary-light: rgba(175, 252, 65, 0.2);
+
+      --bg: #0f172a;
+      /* Slate 900 - Deep dark background */
+      --card-bg: #1e293b;
+      /* Slate 800 - Lighter card background */
+      --sidebar-bg: #111827;
+      /* Gray 900 */
+
+      --text: #f8fafc;
+      /* Slate 50 */
+      --text-muted: #94a3b8;
+      /* Slate 400 */
+      --text-on-primary: #0f172a;
+      /* Black text on neon button */
+
+      --border: #334155;
+      /* Slate 700 */
+
+      --danger: #ef4444;
+      --danger-bg: rgba(239, 68, 68, 0.2);
+      --success: #10b981;
+
+      /* Shadows & Effects */
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+      --glow: 0 0 15px rgba(175, 252, 65, 0.4);
+
+      --radius-lg: 16px;
+      --radius-md: 12px;
+      --radius-sm: 8px;
+    }
+
+    body {
+      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 16px;
+      background-color: var(--bg);
+      background-image: radial-gradient(circle at top right, #1e293b 0%, transparent 40%), radial-gradient(circle at bottom left, #1e293b 0%, transparent 40%);
+      color: var(--text);
+      margin: 0;
+      display: flex;
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 260px;
+      background-color: var(--sidebar-bg);
+      padding: 32px 24px;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      z-index: 10;
+    }
+
+    .sidebar h1 {
+      font-size: 24px;
+      font-weight: 900;
+      text-transform: uppercase;
+      font-style: italic;
+      text-align: left;
+      margin-bottom: 48px;
+      color: var(--primary);
+      text-shadow: 0 0 10px rgba(175, 252, 65, 0.3);
+      letter-spacing: -0.5px;
+    }
+
+    .menu-item {
+      padding: 14px 18px;
+      margin-bottom: 8px;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border: 1px solid transparent;
+    }
+
+    .menu-item:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+    }
+
+    .menu-item.active {
+      background-color: rgba(175, 252, 65, 0.1);
+      color: var(--primary);
+      border-color: var(--primary-light);
+      box-shadow: 0 0 10px rgba(175, 252, 65, 0.1);
+    }
+
+    /* Main Content */
+    .main-content {
+      flex: 1;
+      padding: 40px;
+      max-width: 900px;
+      margin: 0 auto;
+      animation: fadeIn 0.4s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-weight: 900;
+      font-style: italic;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: 2.5em;
+    }
+
+    h2 {
+      font-size: 2em;
+    }
+
+    h3 {
+      font-size: 1.5em;
+    }
+
+    h2 {
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+      border-left: 5px solid var(--primary);
+      padding-left: 16px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      box-shadow: var(--shadow-lg);
+      margin-bottom: 24px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      border: 1px solid var(--border);
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+      border-color: var(--primary);
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: var(--text-muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1px solid var(--border);
+      background-color: #0f172a;
+      /* Darker input bg */
+      border-radius: var(--radius-md);
+      margin-bottom: 24px;
+      box-sizing: border-box;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.2s;
+      color: var(--text);
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none;
+      background-color: #1e293b;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+    button {
+      width: 100%;
+      padding: 16px;
+      background: var(--primary);
+      color: var(--text-on-primary);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 16px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: var(--glow);
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 0 20px rgba(175, 252, 65, 0.6);
+      filter: brightness(1.1);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    button.secondary {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      box-shadow: none;
+    }
+
+    button.secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+
+    button.danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid var(--danger);
+      box-shadow: none;
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+    }
+
+    button.danger:hover {
+      background: var(--danger-bg);
+      box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+    }
+
+    button.edit {
+      background: var(--border);
+      color: var(--text);
+      width: auto;
+      padding: 8px 16px;
+      font-size: 13px;
+      margin-right: 8px;
+      box-shadow: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* List Styles */
+    #memoList li,
+    #exerciseList li {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      padding: 24px;
+      border-radius: var(--radius-md);
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s;
+    }
+
+    #memoList li:hover {
+      border-color: var(--primary);
+      transform: translateX(4px);
+    }
+
+    .memo-content {
+      flex: 1;
+    }
+
+    .memo-meta {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    .memo-main {
+      font-size: 20px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+
+    .memo-main span {
+      color: var(--primary);
+    }
+
+    .memo-note {
+      font-size: 14px;
+      margin-top: 8px;
+      color: var(--text-muted);
+      background: #0f172a;
+      padding: 8px 12px;
+      border-radius: 6px;
+      border-left: 2px solid var(--border);
+    }
+
+    /* Filters (Segmented Control) */
+    .filter-group {
+      display: inline-flex;
+      background: #0f172a;
+      padding: 4px;
+      border-radius: var(--radius-md);
+      margin-bottom: 24px;
+      gap: 4px;
+      border: 1px solid var(--border);
+    }
+
+    .filter-option {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      margin: 0;
+    }
+
+    .filter-option:hover {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .filter-option.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      border: 1px solid var(--primary);
+      box-shadow: 0 0 10px rgba(175, 252, 65, 0.1);
+    }
+
+    .filter-option input {
+      display: none;
+    }
+
+    /* Animations */
+    .fade-in {
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+
+    /* Tabs */
+    .tabs {
+      display: flex;
+      background: #0f172a;
+      padding: 4px;
+      border-radius: var(--radius-lg);
+      margin-bottom: 24px;
+      border: none;
+    }
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      text-align: center;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .tab.active {
+      background: var(--card-bg);
+      color: var(--primary);
+      box-shadow: none;
+      border: 1px solid var(--primary);
+      border-bottom: none;
+      margin-bottom: 0;
+    }
+
+    /* Login Screen */
+    .login-wrapper {
+      background: #0f172a;
+      background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%);
+    }
+
+    .auth-container .card {
+      padding: 40px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      background: rgba(30, 41, 59, 0.95);
+      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+    }
+
+    /* Mobile Bottom Navigation */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--sidebar-bg);
+      border-top: 1px solid var(--border);
+      height: 64px;
+      z-index: 1000;
+      justify-content: space-around;
+      align-items: center;
+      padding: 0 10px;
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: var(--text-muted);
+      font-size: 10px;
+      cursor: pointer;
+      gap: 4px;
+    }
+
+    .mobile-nav-item.active {
+      color: var(--primary);
+    }
+
+    .mobile-nav-item .material-symbols-outlined {
+      font-size: 24px;
+      margin-right: 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      body {
+        flex-direction: column;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .mobile-nav {
+        display: flex;
+      }
+
+      .main-content {
+        padding: 20px 16px 100px 16px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .card {
+        padding: 20px 16px;
+      }
+
+      h1 {
+        font-size: 2em;
+      }
+
+      h2 {
+        font-size: 1.5em;
+      }
+
+      .filter-group {
+        display: flex;
+        overflow-x: auto;
+        width: 100%;
+      }
+
+      .filter-option {
+        flex-shrink: 0;
+        white-space: nowrap;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- PWA Install Prompt -->
+  <div id="installPrompt"
+    style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 16px 24px; border-radius: 12px; box-shadow: 0 8px 32px rgba(175, 252, 65, 0.3); max-width: 90%; animation: slideUp 0.3s ease;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="material-symbols-outlined" style="font-size: 32px; color: #000;">install_mobile</span>
+      <div style="flex: 1;">
+        <div style="font-weight: bold; color: #000; margin-bottom: 4px;">KinAppをインストール</div>
+        <div style="font-size: 0.85em; color: #0f172a;">ホーム画面に追加してアプリのように使えます</div>
+      </div>
+      <button onclick="installPWA()"
+        style="background: #0f172a; color: var(--accent); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">インストール</button>
+      <button onclick="dismissInstallPrompt()"
+        style="background: transparent; border: none; color: #000; cursor: pointer; padding: 8px;">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 認証画面 (ログイン/登録) -->
+  <div id="authSection" class="login-wrapper">
+    <div class="auth-container">
+      <div class="card">
+        <h1 style="text-align:center;">💪 Traning Memo</h1>
+        <div class="tabs">
+          <div class="tab active" onclick="showAuthTab('login')">ログイン</div>
+          <div class="tab" onclick="showAuthTab('register')">新規登録</div>
+        </div>
+
+        <div id="loginFormContainer">
+          <form id="loginForm">
+            <label>ユーザー名</label>
+            <input type="text" id="loginUsername" required placeholder="ユーザー名を入力">
+            <label>パスワード</label>
+            <input type="password" id="loginPassword" required placeholder="パスワード">
+            <button type="submit">ログイン</button>
+            <p id="loginError" style="color: var(--danger); font-weight: bold; margin-top: 10px; display: none;"></p>
+          </form>
+        </div>
+
+        <div id="registerFormContainer" class="hidden">
+          <form id="registerForm">
+            <label>ユーザー名 (新規)</label>
+            <input type="text" id="regUsername" required placeholder="希望のユーザー名">
+            <label>パスワード</label>
+            <input type="password" id="regPassword" required placeholder="パスワード (1文字以上)">
+            <button type="submit">登録する</button>
+            <p id="regError" style="color: var(--danger); font-weight: bold; margin-top: 10px; display: none;"></p>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- アプリメイン画面 -->
+  <div id="appSection" class="hidden" style="width: 100%; display: flex;">
+    <!-- サイドナビゲーション (PC) -->
+    <div class="sidebar">
+      <h1 style="display: flex; align-items: center;"><span class="material-symbols-outlined"
+          style="font-size: 1.2em;">fitness_center</span>KinApp</h1>
+      <div class="menu-item active" onclick="switchPage('record')"><span
+          class="material-symbols-outlined">edit_note</span>記録する</div>
+      <div class="menu-item" onclick="switchPage('history')"><span class="material-symbols-outlined">history</span>履歴・検索
+      </div>
+      <div class="menu-item" onclick="switchPage('meals')"><span class="material-symbols-outlined">restaurant</span>食事
+      </div>
+      <div class="menu-item" onclick="switchPage('weight')"><span
+          class="material-symbols-outlined">monitor_weight</span>体重
+      </div>
+      <div class="menu-item" onclick="switchPage('friends')"><span class="material-symbols-outlined">group</span>フレンド
+      </div>
+      <div class="menu-item" onclick="switchPage('settings')"><span class="material-symbols-outlined">settings</span>設定
+      </div>
+      <div style="flex-grow: 1;"></div>
+      <div style="margin-bottom: 10px; font-weight: bold; display: flex; align-items: center;"><span
+          class="material-symbols-outlined">person</span><span id="currentUserDisplay"></span></div>
+      <div class="menu-item" onclick="logout()" style="color: var(--danger);"><span
+          class="material-symbols-outlined">logout</span>ログアウト</div>
+    </div>
+
+    <!-- モバイルボトムナビゲーション -->
+    <nav class="mobile-nav">
+      <div class="mobile-nav-item active" onclick="switchPage('record')" id="m-nav-record">
+        <span class="material-symbols-outlined">edit_note</span>
+        <span>記録</span>
+      </div>
+      <div class="mobile-nav-item" onclick="switchPage('history')" id="m-nav-history">
+        <span class="material-symbols-outlined">history</span>
+        <span>履歴</span>
+      </div>
+      <div class="mobile-nav-item" onclick="switchPage('meals')" id="m-nav-meals">
+        <span class="material-symbols-outlined">restaurant</span>
+        <span>食事</span>
+      </div>
+      <div class="mobile-nav-item" onclick="switchPage('weight')" id="m-nav-weight">
+        <span class="material-symbols-outlined">monitor_weight</span>
+        <span>体重</span>
+      </div>
+      <div class="mobile-nav-item" onclick="switchPage('settings')" id="m-nav-settings">
+        <span class="material-symbols-outlined">settings</span>
+        <span>設定</span>
+      </div>
+    </nav>
+
+    <!-- メインコンテンツ -->
+    <div class="main-content">
+
+      <!-- ページ: 記録 -->
+      <div id="pageRecord" class="page-content">
+        <h2>今日のトレーニングを記録</h2>
+        <div class="card">
+          <form id="memoForm">
+            <input type="hidden" id="userId">
+
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <label style="margin-bottom: 0;">日付 (今日は非表示中)</label>
+              <button type="button" class="secondary" onclick="toggleDateInput()"
+                style="width: auto; padding: 4px 8px; font-size: 12px;">日付を変更する</button>
+            </div>
+            <input type="date" id="date" required class="hidden" style="margin-top: 8px;">
+
+            <label>種目</label>
+            <select id="exerciseSelect" onchange="checkExerciseCustom()" style="margin-bottom: 8px;">
+              <option value="" disabled selected>種目を選択してください</option>
+            </select>
+            <input type="text" id="exerciseCustom" placeholder="種目名を入力" class="hidden">
+
+            <div style="display: flex; gap: 10px;">
+              <div style="flex: 1;">
+                <label>重量 (kg)</label>
+                <input type="number" id="weight" step="0.5" required>
+              </div>
+              <div style="flex: 1;">
+                <label>回数 (reps)</label>
+                <input type="number" id="reps" required>
+              </div>
+            </div>
+
+            <label>メモ</label>
+            <input type="text" id="note" placeholder="感想や調子など">
+
+            <button type="submit" id="submitBtn">保存する</button>
+            <button type="button" id="cancelEditBtn" class="secondary hidden" onclick="cancelEdit()"
+              style="margin-top: 10px;">キャンセル</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- ページ: 履歴 -->
+      <div id="pageHistory" class="page-content hidden">
+        <h2>履歴 & 検索</h2>
+        <div class="card">
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="searchExercise" placeholder="種目で検索..." style="margin-bottom: 0;">
+            <button onclick="searchMemos()" style="width: auto;">検索</button>
+          </div>
+
+          <!-- 表示切り替えスイッチ (Segmented Control) -->
+          <div class="filter-group">
+            <label class="filter-option active" id="filterMineLabel">
+              <input type="radio" name="viewFilter" value="mine" checked onchange="updateFilterUI()">
+              自分のみ
+            </label>
+            <label class="filter-option" id="filterFriendsLabel">
+              <input type="radio" name="viewFilter" value="friends" onchange="updateFilterUI()">
+              フレンド (フォロー中)
+            </label>
+            <label class="filter-option" id="filterAllLabel">
+              <input type="radio" name="viewFilter" value="all" onchange="updateFilterUI()">
+              全員の記録
+            </label>
+          </div>
+
+          <button onclick="loadMemos()" class="secondary" style="margin-bottom: 10px;">リロード / 全件表示</button>
+
+          <ul id="memoList"></ul>
+        </div>
+      </div>
+
+      <!-- ページ: 食事管理 -->
+      <div id="pageMeals" class="page-content hidden">
+        <h2>食事の記録</h2>
+
+        <!-- 食事入力フォーム -->
+        <div class="card">
+          <label>日付</label>
+          <input type="date" id="mealDate">
+
+          <label>食事タイプ</label>
+          <select id="mealType">
+            <option value="Breakfast">朝食</option>
+            <option value="Lunch">昼食</option>
+            <option value="Dinner">夕食</option>
+            <option value="Snack">間食</option>
+          </select>
+
+          <label>食べたもの (AI推定機能付き)</label>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="text" id="foodName" placeholder="例: 牛丼, バナナ, チキンサラダ" style="margin-bottom:0;">
+            <button onclick="estimateNutrition()" style="width: auto; background: var(--accent); color: #000;"><span
+                class="material-symbols-outlined" style="margin-right: 4px;">auto_awesome</span>AI推定</button>
+          </div>
+          <div id="estimateBadge" style="font-size: 12px; color: var(--accent); margin-bottom: 15px; display: none;">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div>
+              <label>カロリー (kcal)</label>
+              <input type="number" id="mealCal" placeholder="0">
+            </div>
+            <div>
+              <label>タンパク質 (g)</label>
+              <input type="number" step="0.1" id="mealPro" placeholder="0">
+            </div>
+            <div>
+              <label>脂質 (g)</label>
+              <input type="number" step="0.1" id="mealFat" placeholder="0">
+            </div>
+            <div>
+              <label>炭水化物 (g)</label>
+              <input type="number" step="0.1" id="mealCarb" placeholder="0">
+            </div>
+          </div>
+
+          <button onclick="addMeal()">記録する</button>
+        </div>
+
+        <div class="card">
+          <h3>今日はこれだけ食べました</h3>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+            <h1 id="scoreDisplay" style="font-size:3em; margin:0; text-shadow: 0 0 10px var(--accent);">--点</h1>
+            <div style="text-align: right;">
+              <div style="font-size:0.9em; color:var(--text-light);">摂取カロリー</div>
+              <div style="font-size:1.5em; font-weight:bold;" id="calProgressText">0 / 0 kcal</div>
+            </div>
+          </div>
+
+          <!-- カロリーバー -->
+          <div style="background:#333; height:10px; border-radius:5px; overflow:hidden; margin-bottom: 20px;">
+            <div id="calProgressBar" style="width:0%; height:100%; background:var(--accent); transition: width 0.5s;">
+            </div>
+          </div>
+
+          <!-- チャートとアドバイスの2カラム -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+            <div style="position: relative; height: 200px;">
+              <canvas id="pfcChart"></canvas>
+            </div>
+            <div style="display: flex; flex-direction: column; justify-content: center;">
+              <h4 style="margin: 0 0 10px 0;">トレーナーからのアドバイス</h4>
+              <div id="adviceDisplay" style="font-size: 0.9em; line-height: 1.5; color: #fff;">
+                まだ記録がありません。
+              </div>
+            </div>
+          </div>
+
+          <ul id="mealList" style="padding: 0; list-style: none; margin-top: 20px;"></ul>
+        </div>
+      </div>
+
+      <!-- ページ: 体重管理 -->
+      <div id="pageWeight" class="page-content hidden">
+        <h2>体重管理</h2>
+        <div class="card">
+          <label>日付</label>
+          <input type="date" id="weightDate">
+          <label>体重 (kg)</label>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <input type="number" step="0.1" id="weightInput" placeholder="0.0" style="margin-bottom:0;">
+            <button onclick="addWeight()" style="width: auto;">記録する</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>体重推移</h3>
+          <div style="position: relative; height: 300px; margin-bottom: 20px;">
+            <canvas id="weightChart"></canvas>
+          </div>
+          <div id="weightSummary" style="font-size: 0.9em; color: var(--text-muted);">
+            記録を読み込み中...
+          </div>
+        </div>
+      </div>
+
+      <!-- ページ: フレンド -->
+      <div id="pageFriends" class="page-content hidden">
+        <h2>フレンド管理</h2>
+        <div class="card">
+          <label>ユーザー検索</label>
+          <div style="display: flex; gap: 10px;">
+            <input type="text" id="userSearchInput" placeholder="ユーザー名を入力" style="margin-bottom: 0;">
+            <button onclick="searchUsers()" style="width: auto;">検索</button>
+          </div>
+          <ul id="useruSearchResults" style="margin-top: 10px; padding: 0; list-style: none;"></ul>
+        </div>
+
+        <div class="card">
+          <h3>フォロー中 <span id="followingCount">(0)</span></h3>
+          <ul id="followingList" style="padding: 0; list-style: none;"></ul>
+        </div>
+
+        <div class="card">
+          <h3>フォロワー (あなたをフォローしている人) <span id="followersCount">(0)</span></h3>
+          <ul id="followersList" style="padding: 0; list-style: none;"></ul>
+        </div>
+      </div>
+
+      <!-- ページ: 設定 (種目設定含む) -->
+      <div id="pageSettings" class="page-content hidden">
+        <h2>設定</h2>
+
+        <div class="card">
+          <h3>公開設定</h3>
+          <p style="color: var(--text-muted); margin-bottom: 15px;">あなたの記録を誰に見せるか設定します。</p>
+          <div class="filter-group" style="margin-bottom: 20px;">
+            <label class="filter-option" id="visPublic">
+              <input type="radio" name="visibility" value="public" onchange="updateVisibilitySetting()"> 全体公開
+            </label>
+            <label class="filter-option" id="visFriends">
+              <input type="radio" name="visibility" value="friends" onchange="updateVisibilitySetting()"> フレンドのみ
+            </label>
+            <label class="filter-option" id="visPrivate">
+              <input type="radio" name="visibility" value="private" onchange="updateVisibilitySetting()"> 非公開
+            </label>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>目標設定 (1日あたり)</h3>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+            <div><label>カロリー (kcal)</label><input type="number" id="targetCal" placeholder="2000"></div>
+            <div><label>タンパク質 (g)</label><input type="number" id="targetPro" placeholder="60"></div>
+            <div>
+              <div><label>脂質 (g)</label><input type="number" id="targetFat" placeholder="60"></div>
+              <div><label>炭水化物 (g)</label><input type="number" id="targetCarb" placeholder="300"></div>
+            </div>
+            <button onclick="saveTargets()">目標を保存</button>
+          </div>
+
+          <div class="card">
+            <h3>種目の管理</h3>
+            <p style="color: var(--text-muted); margin-bottom: 20px;">
+              プルダウンに表示する種目を追加・削除できます。
+            </p>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+              <input type="text" id="newExerciseName" placeholder="新しい種目を追加" style="margin-bottom: 0;">
+              <button onclick="addExercise()" style="width: auto;">追加</button>
+            </div>
+
+            <ul id="exerciseList" style="list-style: none; padding: 0;">
+              <!-- JSで描画 -->
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const apiBase = '';
+      let editingId = null;
+      let currentUser = localStorage.getItem('kin_user');
+      let allExercises = []; // 種目リストを保持
+
+      // 初期化処理
+      if (currentUser) {
+        showApp(currentUser);
+      } else {
+        showAuth();
+      }
+
+      // --- 画面切り替え ---
+      function showAuthTab(tab) {
+        const loginDiv = document.getElementById('loginFormContainer');
+        const regDiv = document.getElementById('registerFormContainer');
+        const tabs = document.querySelectorAll('.tab');
+
+        // エラー表示をリセット
+        document.getElementById('loginError').style.display = 'none';
+        document.getElementById('regError').style.display = 'none';
+
+        if (tab === 'login') {
+          loginDiv.classList.remove('hidden');
+          regDiv.classList.add('hidden');
+          tabs[0].classList.add('active');
+          tabs[1].classList.remove('active');
+        } else {
+          loginDiv.classList.add('hidden');
+          regDiv.classList.remove('hidden');
+          tabs[0].classList.remove('active');
+          tabs[1].classList.add('active');
+        }
+      }
+
+      function showApp(username) {
+        try {
+          console.log('showApp called for:', username);
+          currentUser = username;
+          localStorage.setItem('kin_user', username);
+
+          const authSec = document.getElementById('authSection');
+          const appSec = document.getElementById('appSection');
+
+          // クラス操作だけでなく、直接スタイルを書き換えて確実に表示・非表示を切り替える
+          if (authSec) {
+            authSec.classList.add('hidden');
+            authSec.style.display = 'none'; // 強制非表示
+            console.log('authSection hidden');
+          }
+
+          if (appSec) {
+            appSec.classList.remove('hidden');
+            appSec.style.display = 'flex'; // 強制表示
+            console.log('appSection shown');
+          }
+
+          document.getElementById('currentUserDisplay').textContent = username;
+
+          // 今日の日付をセット
+          const dateEl = document.getElementById('date');
+          if (dateEl) dateEl.valueAsDate = new Date();
+
+          // ユーザー情報（目標値含む）を取得
+          loadUserInfo();
+
+          loadExercises();
+          loadMemos();
+          switchPage('record'); // デフォルトは記録ページ
+
+        } catch (e) {
+          console.error("Critical Error in showApp:", e);
+          alert("アプリの表示中にエラーが発生しました: " + e.message);
+        }
+      }
+
+      function showAuth() {
+        currentUser = null;
+        localStorage.removeItem('kin_user');
+        document.getElementById('authSection').classList.remove('hidden');
+        document.getElementById('appSection').classList.add('hidden');
+      }
+
+      function logout() {
+        if (confirm('ログアウトしますか？')) {
+          showAuth();
+        }
+      }
+
+      // --- ページ切り替え ---
+      // --- ページ切り替え ---
+      function switchPage(pageId) {
+        // 全てのページコンテンツを隠す
+        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+
+        // 対象のページを表示
+        const targetPageId = 'page' + pageId.charAt(0).toUpperCase() + pageId.slice(1);
+        const targetPage = document.getElementById(targetPageId);
+        if (targetPage) {
+          targetPage.classList.remove('hidden');
+          targetPage.classList.add('fade-in');
+        }
+
+        // PCメニューの活性化
+        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+        const pcMenuItem = Array.from(document.querySelectorAll('.menu-item')).find(m => m.getAttribute('onclick')?.includes(`'${pageId}'`));
+        if (pcMenuItem) pcMenuItem.classList.add('active');
+
+        // モバイルメニューの活性化
+        document.querySelectorAll('.mobile-nav-item').forEach(m => m.classList.remove('active'));
+        const mobNavId = 'm-nav-' + pageId;
+        if (document.getElementById(mobNavId)) {
+          document.getElementById(mobNavId).classList.add('active');
+        }
+
+        // ページごとのデータ読み込み
+        if (pageId === 'history') loadMemos();
+        if (pageId === 'meals') {
+          const d = new Date();
+          const mealDateInput = document.getElementById('mealDate');
+          if (mealDateInput && !mealDateInput.value) mealDateInput.valueAsDate = d;
+          loadMeals();
+        }
+        if (pageId === 'weight') {
+          const weightDateInput = document.getElementById('weightDate');
+          if (weightDateInput) weightDateInput.valueAsDate = new Date();
+          loadWeightHistory();
+        }
+        if (pageId === 'friends') loadFriends();
+        if (pageId === 'settings') {
+          loadSettings();
+          loadExerciseList();
+        }
+      }
+
+      function updateFilterUI() {
+        const filterInput = document.querySelector('input[name="viewFilter"]:checked');
+        if (!filterInput) return;
+        const filter = filterInput.value;
+        const mineLabel = document.getElementById('filterMineLabel');
+        const friendsLabel = document.getElementById('filterFriendsLabel');
+        const allLabel = document.getElementById('filterAllLabel');
+
+        if (mineLabel) mineLabel.classList.remove('active');
+        if (friendsLabel) friendsLabel.classList.remove('active');
+        if (allLabel) allLabel.classList.remove('active');
+
+        if (filter === 'mine' && mineLabel) mineLabel.classList.add('active');
+        else if (filter === 'friends' && friendsLabel) friendsLabel.classList.add('active');
+        else if (allLabel) allLabel.classList.add('active');
+
+        loadMemos();
+      }
+
+      // --- API連携: 種目管理 ---
+      async function loadExercises() {
+        const res = await fetch(`${apiBase}/exercises`);
+        allExercises = await res.json();
+        renderExerciseSelect();
+        renderExerciseList();
+      }
+
+      function renderExerciseSelect() {
+        const select = document.getElementById('exerciseSelect');
+        // 既存の選択肢をクリア（"custom"などは残さないといけないが再構築する）
+
+        allExercises.forEach(ex => {
+          const opt = document.createElement('option');
+          opt.value = ex.name;
+          opt.textContent = ex.name;
+          select.appendChild(opt);
+        });
+
+        // その他を追加
+        const customOpt = document.createElement('option');
+        customOpt.value = 'custom';
+        customOpt.textContent = 'その他 (手入力)';
+        select.appendChild(customOpt);
+      }
+
+      function renderExerciseList() {
+        const list = document.getElementById('exerciseList');
+        list.innerHTML = '';
+        allExercises.forEach(ex => {
+          const li = document.createElement('li');
+          li.style.display = 'flex';
+          li.style.justifyContent = 'space-between';
+          li.style.padding = '8px';
+          li.style.borderBottom = '1px solid #eee';
+
+          li.innerHTML = `
+            <span>${ex.name}</span>
+            <button class="danger" onclick="deleteExercise(${ex.id})" style="padding: 2px 8px; font-size: 12px;">削除</button>
+          `;
+          list.appendChild(li);
+        })
+      }
+
+      async function addExercise() {
+        const name = document.getElementById('newExerciseName').value;
+        if (!name) return;
+
+        const res = await fetch(`${apiBase}/exercises`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name })
+        });
+
+        if (res.ok) {
+          document.getElementById('newExerciseName').value = '';
+          loadExercises(); // リロードして反映
+        } else {
+          const err = await res.json();
+          alert('追加失敗: ' + err.detail);
+        }
+      }
+
+      async function deleteExercise(id) {
+        if (!confirm('この種目を削除しますか？（過去の記録は消えませんが、選択肢からなくなります）')) return;
+
+        await fetch(`${apiBase}/exercises/${id}`, { method: 'DELETE' })
+          .then(res => {
+            if (res.ok) {
+              loadExercises();
+            } else {
+              alert('削除失敗');
+            }
+          });
+      }
+
+
+      // --- API連携: 認証 ---
+
+      document.getElementById('registerForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('regUsername').value;
+        const password = document.getElementById('regPassword').value;
+        const errDisplay = document.getElementById('regError');
+
+        // リセット
+        errDisplay.style.display = 'none';
+        errDisplay.textContent = '';
+
+        const res = await fetch(`${apiBase}/register`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+
+        if (res.ok) {
+          alert("登録成功！ログインしてください。");
+          showAuthTab('login');
+          document.getElementById('loginUsername').value = username;
+          document.getElementById('registerForm').reset();
+        } else {
+          const result = await res.json();
+          // エラー表示
+          errDisplay.textContent = result.detail;
+          errDisplay.style.display = 'block';
+        }
+      });
+
+      document.getElementById('loginForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        const errDisplay = document.getElementById('loginError');
+
+        // リセット
+        errDisplay.style.display = 'none';
+        errDisplay.textContent = 'ログイン処理中...';
+        errDisplay.style.color = 'black';
+        errDisplay.style.display = 'block';
+
+        try {
+          // 簡易的なログインAPI呼び出し
+          const res = await fetch(`${apiBase}/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+
+          if (res.ok) {
+            errDisplay.textContent = 'ログイン成功！画面を切り替えます...';
+            console.log('Login successful for:', username);
+            setTimeout(() => {
+              showApp(username);
+              document.getElementById('loginForm').reset();
+            }, 500);
+          } else {
+            const result = await res.json();
+            errDisplay.style.color = 'var(--danger)';
+            // エラー表示 (ステータスコードによってメッセージを変えるなど)
+            if (res.status === 400 || res.status === 401) {
+              errDisplay.textContent = result.detail || "ユーザー名またはパスワードが正しくありません";
+            } else {
+              errDisplay.textContent = "予期しないエラーが発生しました Status:" + res.status;
+            }
+          }
+        } catch (error) {
+          console.error(error);
+          errDisplay.style.color = 'var(--danger)';
+          errDisplay.textContent = "通信エラーが発生しました: " + error.message;
+        }
+      });
+
+      function checkExerciseCustom() {
+        const select = document.getElementById('exerciseSelect');
+        const customInput = document.getElementById('exerciseCustom');
+
+        if (select.value === 'custom') {
+          customInput.classList.remove('hidden');
+          customInput.required = true;
+          customInput.focus();
+        } else {
+          customInput.classList.add('hidden');
+          customInput.required = false;
+        }
+      }
+
+      function getSelectedExercise() {
+        const select = document.getElementById('exerciseSelect');
+        if (select.value === 'custom') {
+          return document.getElementById('exerciseCustom').value;
+        }
+        return select.value;
+      }
+
+      // --- API連携: メモ機能 ---
+
+      document.getElementById('memoForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const exerciseName = getSelectedExercise();
+        if (!exerciseName) {
+          alert("種目を選択または入力してください");
+          return;
+        }
+
+        const data = {
+          user_id: currentUser,
+          date: document.getElementById('date').value,
+          exercise: exerciseName,
+          weight: parseFloat(document.getElementById('weight').value),
+          reps: parseInt(document.getElementById('reps').value),
+          note: document.getElementById('note').value,
+        };
+
+        let url = `${apiBase}/memo`;
+        let method = 'POST';
+
+        if (editingId !== null) {
+          url = `${apiBase}/memo/${editingId}`;
+          method = 'PUT';
+        }
+
+        const res = await fetch(url, {
+          method: method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+          alert(method === 'POST' ? '保存しました！' : '更新しました！');
+          resetForm();
+          loadMemos();
+        } else {
+          alert('エラーが発生しました');
+        }
+      });
+
+      async function loadMemos() {
+        // フィルタリング設定を確認
+        const filter = document.querySelector('input[name="viewFilter"]:checked').value;
+
+        // V2 APIを使用
+        let url = `${apiBase}/memo_v2?viewer_id=${encodeURIComponent(currentUser)}&filter_mode=${filter}`;
+        const res = await fetch(url);
+        const memos = await res.json();
+        renderList(memos);
+      }
+
+      async function searchMemos() {
+        const exercise = document.getElementById('searchExercise').value;
+        const filter = document.querySelector('input[name="viewFilter"]:checked').value;
+
+        let url = `${apiBase}/memo_v2?viewer_id=${encodeURIComponent(currentUser)}&filter_mode=${filter}&exercise=${encodeURIComponent(exercise)}`;
+        const res = await fetch(url);
+        const memos = await res.json();
+        renderList(memos);
+      }
+
+      function renderList(memos) {
+        const list = document.getElementById('memoList');
+        list.innerHTML = '';
+
+        // 新しい順に
+        memos.slice().reverse().forEach((m) => {
+          const isMine = (m.user_id === currentUser);
+          const li = document.createElement('li');
+
+          // 他人の記録ならユーザー名を表示、自分なら編集ボタンなど
+          let userBadge = '';
+          if (!isMine) {
+            userBadge = `<span style="font-size: 12px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">👤 ${m.user_id}</span>`;
+          }
+
+          let actionButtons = '';
+          if (isMine) {
+            actionButtons = `
+            <button class="edit" onclick="editMemo(${m.id})">編集</button>
+            <button class="danger" onclick="deleteMemo(${m.id})">削除</button>
+            `;
+          }
+
+          li.innerHTML = `
+        <div class="memo-content">
+          <div class="memo-meta">${userBadge}${m.date}</div>
+          <div class="memo-main">${m.exercise} ${m.weight}kg × ${m.reps}回</div>
+          <div class="memo-note">${m.note}</div>
+        </div>
+        <div class="memo-actions">
+          ${actionButtons}
+        </div>
+      `;
+          list.appendChild(li);
+        });
+      }
+
+      function editMemo(id) {
+        fetch(`${apiBase}/memo?id=${id}`)
+          .then(res => res.json())
+          .then(memos => {
+            const m = memos[0];
+            if (m) {
+              document.getElementById('date').value = m.date;
+              // 編集時は日付が見えたほうが親切なので表示する
+              document.getElementById('date').classList.remove('hidden');
+
+              // 種目のセット（リストにあるか確認）
+              const select = document.getElementById('exerciseSelect');
+              const customInput = document.getElementById('exerciseCustom');
+              const options = Array.from(select.options).map(o => o.value);
+
+              if (options.includes(m.exercise)) {
+                select.value = m.exercise;
+                customInput.classList.add('hidden');
+              } else {
+                select.value = 'custom';
+                customInput.value = m.exercise;
+                customInput.classList.remove('hidden');
+              }
+
+              document.getElementById('weight').value = m.weight;
+              document.getElementById('reps').value = m.reps;
+              document.getElementById('note').value = m.note;
+
+              editingId = id;
+              document.getElementById('submitBtn').textContent = "更新する";
+              document.getElementById('cancelEditBtn').classList.remove('hidden');
+
+              // 記録ページへ移動
+              switchPage('record');
+
+              // フォームまでスクロール
+              document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+      }
+
+      function deleteMemo(id) {
+        if (confirm("本当に削除しますか？")) {
+          fetch(`${apiBase}/memo/${id}`, { method: 'DELETE' })
+            .then(res => res.json())
+            .then(() => {
+              loadMemos();
+            });
+        }
+      }
+
+      function cancelEdit() {
+        resetForm();
+      }
+
+      function resetForm() {
+        editingId = null;
+        document.getElementById('submitBtn').textContent = "保存する";
+        document.getElementById('cancelEditBtn').classList.add('hidden');
+
+        // 日付は今日に戻して隠す
+        document.getElementById('memoForm').reset();
+        document.getElementById('date').valueAsDate = new Date();
+        document.getElementById('date').classList.add('hidden');
+
+        // 種目選択もリセット
+        document.getElementById('exerciseCustom').classList.add('hidden');
+      }
+
+
+      // --- フレンド・設定機能 ---
+
+      async function searchUsers() {
+        const q = document.getElementById('userSearchInput').value;
+        if (!q) return;
+        const res = await fetch(`${apiBase}/users/search?q=${encodeURIComponent(q)}`);
+        const users = await res.json();
+        const ul = document.getElementById('useruSearchResults');
+        ul.innerHTML = '';
+        users.forEach(u => {
+          if (u === currentUser) return; // 自分は表示しない
+          const li = document.createElement('li');
+          li.style.padding = '8px';
+          li.style.borderBottom = '1px solid var(--border)';
+          li.style.display = 'flex';
+          li.style.justifyContent = 'space-between';
+          li.innerHTML = `
+                <span>${u}</span>
+                <button onclick="addFriend('${u}')" class="edit" style="width:auto; font-size:12px;">フォロー</button>
+            `;
+          ul.appendChild(li);
+        });
+      }
+
+      async function addFriend(username) {
+        const res = await fetch(`${apiBase}/friends?current_user=${encodeURIComponent(currentUser)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ friend_username: username })
+        });
+        if (res.ok) {
+          alert(username + ' をフォローしました');
+          loadFriends();
+          searchUsers(); // リロード
+        } else {
+          alert('工ラー');
+        }
+      }
+
+      async function loadFriends() {
+        const res = await fetch(`${apiBase}/friends?current_user=${encodeURIComponent(currentUser)}`);
+        const data = await res.json();
+
+        document.getElementById('followingCount').textContent = `(${data.following.length})`;
+        document.getElementById('followersCount').textContent = `(${data.followers.length})`;
+
+        const followingList = document.getElementById('followingList');
+        followingList.innerHTML = '';
+        data.following.forEach(u => {
+          const li = document.createElement('li');
+          li.style.padding = '8px';
+          li.style.borderBottom = '1px solid var(--border)';
+          li.style.display = 'flex';
+          li.style.justifyContent = 'space-between';
+          li.innerHTML = `<span>${u}</span> <button class="danger" onclick="removeFriend('${u}')" style="width:auto; font-size:12px;">解除</button>`;
+          followingList.appendChild(li);
+        });
+
+        const followersList = document.getElementById('followersList');
+        followersList.innerHTML = '';
+        data.followers.forEach(u => {
+          const li = document.createElement('li');
+          li.style.padding = '8px';
+          li.style.borderBottom = '1px solid var(--border)';
+          li.innerHTML = `<span>${u}</span>`;
+          followersList.appendChild(li);
+        });
+      }
+
+      async function removeFriend(username) {
+        if (!confirm(username + ' のフォローを解除しますか？')) return;
+        const res = await fetch(`${apiBase}/friends/${username}?current_user=${encodeURIComponent(currentUser)}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) loadFriends();
+      }
+
+      async function updateVisibilitySetting() {
+        const val = document.querySelector('input[name="visibility"]:checked').value;
+        const labels = ['visPublic', 'visFriends', 'visPrivate'];
+        labels.forEach(id => document.getElementById(id).classList.remove('active'));
+
+        if (val === 'public') document.getElementById('visPublic').classList.add('active');
+        if (val === 'friends') document.getElementById('visFriends').classList.add('active');
+        if (val === 'private') document.getElementById('visPrivate').classList.add('active');
+
+        await fetch(`${apiBase}/settings/visibility?current_user=${encodeURIComponent(currentUser)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ visibility: val })
+        });
+      }
+
+      // --- 食事管理機能 ---
+
+      async function estimateNutrition() {
+        const text = document.getElementById('foodName').value;
+        if (!text) return alert("食べ物の名前を入力してください");
+
+        const btn = document.querySelector('button[onclick="estimateNutrition()"]');
+        btn.textContent = "考え中...";
+        btn.disabled = true;
+
+        try {
+          const res = await fetch(`${apiBase}/api/estimate_nutrition`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: text })
+          });
+          const data = await res.json();
+
+          document.getElementById('mealCal').value = data.calories;
+          document.getElementById('mealPro').value = data.protein;
+          document.getElementById('mealFat').value = data.fat;
+          document.getElementById('mealCarb').value = data.carbs;
+
+          const badge = document.getElementById('estimateBadge');
+          badge.style.display = 'block';
+          badge.textContent = `ソース: ${data.source} (${data.food_name})`;
+
+        } catch (e) {
+          alert("推定に失敗しました");
+          console.error(e);
+        } finally {
+          btn.textContent = "🪄 AI推定";
+          btn.disabled = false;
+        }
+      }
+
+      async function addMeal() {
+        const date = document.getElementById('mealDate').value;
+        const type = document.getElementById('mealType').value;
+        const name = document.getElementById('foodName').value;
+        const cal = document.getElementById('mealCal').value;
+        const p = document.getElementById('mealPro').value;
+        const f = document.getElementById('mealFat').value;
+        const c = document.getElementById('mealCarb').value;
+
+        if (!name || !date) return alert("日付と食事名は必須です");
+
+        const body = {
+          user_id: currentUser,
+          date: date,
+          meal_type: type,
+          food_name: name,
+          calories: parseInt(cal) || 0,
+          protein: parseFloat(p) || 0,
+          fat: parseFloat(f) || 0,
+          carbs: parseFloat(c) || 0
+        };
+
+        const res = await fetch(`${apiBase}/meals`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+
+        if (res.ok) {
+          alert('食事を記録しました！');
+          // フォームクリア
+          document.getElementById('foodName').value = '';
+          document.getElementById('mealCal').value = '';
+          document.getElementById('mealPro').value = '';
+          document.getElementById('mealFat').value = '';
+          document.getElementById('mealCarb').value = '';
+          document.getElementById('estimateBadge').style.display = 'none';
+          loadMeals();
+        } else {
+          alert('エラーが発生しました');
+        }
+      }
+
+      async function loadMeals() {
+        const date = document.getElementById('mealDate').value;
+        if (!date) return;
+
+        const res = await fetch(`${apiBase}/meals?user_id=${encodeURIComponent(currentUser)}&date=${date}`);
+        const meals = await res.json();
+
+        const list = document.getElementById('mealList');
+        list.innerHTML = '';
+
+        let totalCal = 0;
+        let totalP = 0, totalF = 0, totalC = 0;
+
+        meals.forEach(m => {
+          totalCal += m.calories;
+          totalP += m.protein;
+          totalF += m.fat;
+          totalC += m.carbs;
+
+          const li = document.createElement('li');
+          li.className = 'card';
+          li.style.marginBottom = '10px';
+          li.style.padding = '10px';
+          li.innerHTML = `
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <span style="font-weight:bold; color:var(--accent); margin-right:5px;">${m.meal_type}</span>
+                        <span style="font-weight:bold;">${m.food_name}</span>
+                        <br>
+                        <span style="font-size:0.9em; color:var(--text-light);">
+                            ${m.calories}kcal (P:${m.protein}g F:${m.fat}g C:${m.carbs}g)
+                        </span>
+                    </div>
+                    <button class="danger" onclick="deleteMeal(${m.id})" style="width:auto; padding:5px 10px;">削除</button>
+                </div>
+            `;
+          list.appendChild(li);
+        });
+
+        // チャートなどを更新
+        updateDashboard(totalCal, totalP, totalF, totalC);
+      }
+
+      // --- ユーザー目標管理・Dashboard ---
+      let userTargets = { cal: 2000, p: 60, f: 60, c: 300 };
+      let chartInstance = null;
+
+      async function loadUserInfo() {
+        const res = await fetch(`${apiBase}/users/me?current_user=${encodeURIComponent(currentUser)}`);
+        const data = await res.json();
+        if (data.target_calories) {
+          userTargets = {
+            cal: data.target_calories,
+            p: data.target_protein,
+            f: data.target_fat,
+            c: data.target_carbs
+          };
+
+          // 設定画面に反映
+          document.getElementById('targetCal').value = userTargets.cal;
+          document.getElementById('targetPro').value = userTargets.p;
+          document.getElementById('targetFat').value = userTargets.f;
+          document.getElementById('targetCarb').value = userTargets.c;
+
+          // 公開設定もここで反映できるが、個別APIでやってるので割愛（もしくは統合してもいい）
+        }
+      }
+
+      async function saveTargets() {
+        const t = {
+          target_calories: parseInt(document.getElementById('targetCal').value) || 2000,
+          target_protein: parseFloat(document.getElementById('targetPro').value) || 60,
+          target_fat: parseFloat(document.getElementById('targetFat').value) || 60,
+          target_carbs: parseFloat(document.getElementById('targetCarb').value) || 300,
+        };
+
+        await fetch(`${apiBase}/settings/targets?current_user=${encodeURIComponent(currentUser)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(t)
+        });
+        userTargets = { cal: t.target_calories, p: t.target_protein, f: t.target_fat, c: t.target_carbs };
+        alert("目標を保存しました！");
+      }
+
+      function updateDashboard(cal, p, f, c) {
+        // カロリーバー
+        const calPercent = Math.min((cal / userTargets.cal) * 100, 100);
+        document.getElementById('calProgressBar').style.width = `${calPercent}%`;
+        document.getElementById('calProgressText').textContent = `${cal} / ${userTargets.cal} kcal`;
+
+        // 色を変える（超過したら赤とか）
+        if (cal > userTargets.cal) {
+          document.getElementById('calProgressBar').style.backgroundColor = '#ff0055';
+        } else {
+          document.getElementById('calProgressBar').style.backgroundColor = 'var(--accent)';
+        }
+
+        // PFC チャート
+        const ctx = document.getElementById('pfcChart').getContext('2d');
+        if (chartInstance) chartInstance.destroy();
+
+        // 目標に対する達成率 (%)
+        const pRate = (p / userTargets.p) * 100;
+        const fRate = (f / userTargets.f) * 100;
+        const cRate = (c / userTargets.c) * 100;
+
+        // スコア計算 (適当なロジック: 100%に近いほど良い)
+        // 偏差の絶対値の平均を引くイメージ
+        const diffP = Math.abs(100 - pRate);
+        const diffF = Math.abs(100 - fRate);
+        const diffC = Math.abs(100 - cRate);
+        const avgDiff = (diffP + diffF + diffC) / 3;
+        let score = Math.max(0, 100 - avgDiff);
+        if (cal === 0) score = 0; // まだ食べてない
+
+        document.getElementById('scoreDisplay').textContent = `${Math.floor(score)}点`;
+
+        chartInstance = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: ['Protein', 'Fat', 'Carbs'],
+            datasets: [{
+              label: '達成率 (%)',
+              data: [pRate, fRate, cRate],
+              backgroundColor: 'rgba(175, 252, 65, 0.2)',
+              borderColor: '#affc41',
+              pointBackgroundColor: '#affc41',
+              borderWidth: 2
+            }]
+          },
+          options: {
+            scales: {
+              r: {
+                angleLines: { color: '#333' },
+                grid: { color: '#333' },
+                pointLabels: { color: '#fff', font: { size: 12 } },
+                suggestedMin: 0,
+                suggestedMax: 100,
+                ticks: { display: false }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            },
+            maintainAspectRatio: false
+          }
+        });
+
+        // アドバイス生成
+        const advices = [];
+        if (pRate < 80) advices.push("タンパク質が不足しています。鶏肉や卵を食べましょう！");
+        if (pRate > 150) advices.push("タンパク質を摂りすぎています。腎臓に気をつけて。");
+        if (fRate > 120) advices.push("脂質が高めです。揚げ物は控えましょう。");
+        if (cRate < 50) advices.push("エネルギー不足かも。炭水化物もしっかり摂りましょう。");
+        if (cal > userTargets.cal * 1.1) advices.push("カロリーオーバー！明日は少し運動量を増やしましょう。");
+        if (advices.length === 0 && cal > 0) advices.push("素晴らしいバランスです！この調子で続けましょう！");
+        if (cal === 0) advices.push("まだ記録がありません。何か食べましたか？");
+
+        document.getElementById('adviceDisplay').textContent = advices.join("\n");
+      }
+
+      async function deleteMeal(id) {
+        if (!confirm('削除しますか？')) return;
+        const res = await fetch(`${apiBase}/meals/${id}`, { method: 'DELETE' });
+        if (res.ok) loadMeals();
+      }
+
+      // --- 体重管理機能 ---
+      let weightChartInstance = null;
+
+      async function addWeight() {
+        const date = document.getElementById('weightDate').value;
+        const weight = document.getElementById('weightInput').value;
+
+        if (!date || !weight) return alert("日付と体重を入力してください");
+
+        const res = await fetch(`${apiBase}/weights`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: currentUser, date, weight: parseFloat(weight) })
+        });
+
+        if (res.ok) {
+          alert('体重を記録しました！');
+          document.getElementById('weightInput').value = '';
+          loadWeightHistory();
+        } else {
+          alert('記録に失敗しました');
+        }
+      }
+
+      async function loadWeightHistory() {
+        const res = await fetch(`${apiBase}/weights?user_id=${encodeURIComponent(currentUser)}`);
+        const data = await res.json();
+        renderWeightChart(data);
+
+        const summary = document.getElementById('weightSummary');
+        if (data.length >= 2) {
+          const latest = data[data.length - 1];
+          const prev = data[data.length - 2];
+          const diff = (latest.weight - prev.weight).toFixed(1);
+          const diffText = diff > 0 ? `+${diff}` : diff;
+          summary.textContent = `最新: ${latest.weight}kg (前回比 ${diffText}kg)`;
+        } else if (data.length === 1) {
+          summary.textContent = `最新: ${data[0].weight}kg (最初の記録)`;
+        } else {
+          summary.textContent = "まだ記録がありません。";
+        }
+      }
+
+      function renderWeightChart(data) {
+        const ctx = document.getElementById('weightChart').getContext('2d');
+        if (weightChartInstance) weightChartInstance.destroy();
+
+        weightChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: data.map(d => d.date),
+            datasets: [{
+              label: '体重 (kg)',
+              data: data.map(d => d.weight),
+              borderColor: '#affc41',
+              backgroundColor: 'rgba(175, 252, 65, 0.1)',
+              borderWidth: 3,
+              tension: 0.3,
+              fill: true,
+              pointBackgroundColor: '#affc41',
+              pointRadius: 4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                grid: { color: '#334155' },
+                ticks: { color: '#94a3b8' },
+                suggestedMin: Math.min(...data.map(d => d.weight)) - 2,
+                suggestedMax: Math.max(...data.map(d => d.weight)) + 2
+              },
+              x: {
+                grid: { display: false },
+                ticks: { color: '#94a3b8' }
+              }
+            },
+            plugins: {
+              legend: { display: false }
+            }
+          }
+        });
+      }
+
+      // 日付変更時にリスト更新
+      document.getElementById('mealDate')?.addEventListener('change', loadMeals);
+
+    </script>
+    <script src="/static/pwa-init.js"></script>
+    <style>
+      @keyframes slideUp {
+        from {
+          transform: translateX(-50%) translateY(100px);
+          opacity: 0;
+        }
+
+        to {
+          transform: translateX(-50%) translateY(0);
+          opacity: 1;
+        }
+      }
+    </style>
+</body>
+
+</html>

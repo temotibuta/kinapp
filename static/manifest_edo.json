@@ -1,0 +1,29 @@
+{
+    "name": "筋大江戸 - 筋力修行録",
+    "short_name": "筋大江戸",
+    "description": "江戸時代の雰囲気が漂う筋力トレーニング修行録。日々の修行を記録し、目方を管理せよ。",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#1a1a1a",
+    "theme_color": "#d4af37",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/static/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "/static/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
+        }
+    ],
+    "categories": [
+        "health",
+        "fitness",
+        "lifestyle"
+    ]
+}

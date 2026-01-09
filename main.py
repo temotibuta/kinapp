@@ -612,74 +612,9 @@ def estimate_nutrition(req: EstimationRequest):
             }
         except Exception as e:
             print(f"Gemini Error: {e}")
-            # Fallback to next method
-    
-    # 2. OpenFoodFacts (Free, No Key)
-    # 簡易的に商品検索APIを叩いて、トップヒットの栄養素を返す
-    try:
-        url = f"https://world.openfoodfacts.org/cgi/search.pl?search_terms={urllib.parse.quote(text)}&search_simple=1&action=process&json=1&page_size=1"
-        req = urllib.request.Request(url, headers={'User-Agent': 'KinApp/1.0'})
-        with urllib.request.urlopen(req) as res:
-             data = json.load(res)
-             if data.get('products'):
-                 p = data['products'][0]
-                 nutriments = p.get('nutriments', {})
-                 
-                 # 100gあたりの値が返ってくることが多い
-                 cal = nutriments.get('energy-kcal_100g', 0)
-                 pro = nutriments.get('proteins_100g', 0)
-                 fat = nutriments.get('fat_100g', 0)
-                 carbs = nutriments.get('carbohydrates_100g', 0)
-                 
-                 # 名前も取得
-                 name = p.get('product_name', text)
-                 
-                 return {
-                     "food_name": name,
-                     "calories": int(cal) if cal else 0,
-                     "protein": float(pro) if pro else 0,
-                     "fat": float(fat) if fat else 0,
-                     "carbs": float(carbs) if carbs else 0,
-                     "source": "OpenFoodFacts"
-                 }
-    except Exception as e:
-        print(f"OpenFoodFacts Error: {e}")
-        pass
-
-    # 3. 辞書フォールバック (デモ用)
-    dictionary = {
-        "banana": {"cal": 89, "p": 1.1, "f": 0.3, "c": 22.8},
-        "バナナ": {"cal": 86, "p": 1.1, "f": 0.2, "c": 22.5},
-        "egg": {"cal": 155, "p": 12.6, "f": 10.6, "c": 1.1},
-        "卵": {"cal": 90, "p": 7.4, "f": 6.2, "c": 0.2}, # L玉1個相当のイメージ
-        "rice": {"cal": 130, "p": 2.7, "f": 0.3, "c": 28},
-        "ご飯": {"cal": 168, "p": 2.5, "f": 0.3, "c": 37.1},
-        "chicken": {"cal": 165, "p": 31, "f": 3.6, "c": 0},
-        "鶏肉": {"cal": 108, "p": 22.3, "f": 1.5, "c": 0}
-    }
-    
-    # 部分一致検索
-    lower_text = text.lower()
-    for k, v in dictionary.items():
-        if k in lower_text:
-            return {
-                "food_name": text,
-                "calories": int(v['cal']),
-                "protein": v['p'],
-                "fat": v['f'],
-                "carbs": v['c'],
-                "source": "Dictionary"
-            }
-
-    # ヒットしない場合
-    return {
-        "food_name": text,
-        "calories": 0,
-        "protein": 0,
-        "fat": 0,
-        "carbs": 0,
-        "source": "Not Found"
-    }
+            raise HTTPException(status_code=500, detail="AIによる推定に失敗しました。")
+    else:
+        raise HTTPException(status_code=500, detail="Gemini APIキーが設定されていません。")
 
 # メモ更新
 @app.put("/memo/{memo_id}")

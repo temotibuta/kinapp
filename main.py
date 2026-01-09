@@ -138,6 +138,16 @@ def init_db():
         )
     ''')
 
+    # Weightsテーブル
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS weights (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
+            date TEXT,
+            weight REAL
+        )
+    ''')
+
     # Notificationsテーブル
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS notifications (
@@ -495,10 +505,13 @@ def update_targets(targets: UserTargets, current_user: str = Query(...)):
     return {"message": "目標値を更新しました"}
 
 @app.get("/users/search")
-def search_users(q: str = Query(...)):
+def search_users(q: str = Query("")):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    cursor.execute("SELECT username FROM users WHERE username LIKE ? LIMIT 10", (f"%{q}%",))
+    if q:
+        cursor.execute("SELECT username FROM users WHERE username LIKE ? LIMIT 10", (f"%{q}%",))
+    else:
+        cursor.execute("SELECT username FROM users ORDER BY RANDOM() LIMIT 10") # ランダムに10人表示
     users = [row[0] for row in cursor.fetchall()]
     conn.close()
     return users
@@ -556,23 +569,37 @@ def estimate_nutrition(req: EstimationRequest):
     # 1. Gemini AI Estimate (High Priority)
     if GEMINI_API_KEY:
         try:
-            model = genai.GenerativeModel('gemini-2.5-flash')
+            # モデル名を修正: gemini-1.5-flash (2.5は存在しない)
+            model = genai.GenerativeModel('gemini-1.5-flash')
             prompt = f"""
-            You are a nutritionist. Estimate the calories and macronutrients (Protein, Fat, Carbs) for the food: "{text}".
-            If the input is ambiguous, make a reasonable guess based on standard serving sizes.
-            Return ONLY a JSON object with this exact format, no markdown, no comments:
+            栄養士として、以下の食事の栄養素（カロリー、タンパク質、脂質、炭水化物）を推定してください。
+            入力: "{text}"
+
+            指示:
+            1. 日本語で回答してください。
+            2. 一般的な1人前の量を基準にしてください。
+            3. 数値は推定値で構いません。
+            4. 出力は以下のJSON形式のみとし、解説やMarkdown（```jsonなど）は一切含めないでください。
+
             {{
-                "food_name": "Standardized Name (e.g. Grilled Chicken 100g)",
-                "calories": 0,
-                "protein": 0.0,
-                "fat": 0.0,
-                "carbs": 0.0
+                "food_name": "料理名 (分量の目安)",
+                "calories": 数値(kcal),
+                "protein": 数値(g),
+                "fat": 数値(g),
+                "carbs": 数値(g)
             }}
             """
             response = model.generate_content(prompt)
             raw_text = response.text
-            # Clean up potentially markdown-wrapped JSON (e.g. ```json ... ```)
-            json_text = re.sub(r'```json\s*|\s*```', '', raw_text).strip()
+            
+            # Markdownの除去（もし含まれていれば）
+            json_text = re.sub(r'```json\s*|\s*```|`', '', raw_text).strip()
+            
+            # JSON部分の抽出（余計なテキストが混ざる対策）
+            match = re.search(r'\{.*\}', json_text, re.DOTALL)
+            if match:
+                json_text = match.group(0)
+            
             data = json.loads(json_text)
             
             return {
@@ -581,7 +608,7 @@ def estimate_nutrition(req: EstimationRequest):
                 "protein": float(data.get("protein", 0)),
                 "fat": float(data.get("fat", 0)),
                 "carbs": float(data.get("carbs", 0)),
-                "source": "Gemini AI"
+                "source": "Gemini AI (1.5-flash)"
             }
         except Exception as e:
             print(f"Gemini Error: {e}")

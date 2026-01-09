@@ -738,7 +738,17 @@
             <button onclick="estimateNutrition()" style="width: auto; background: var(--accent); color: #000;"><span
                 class="material-symbols-outlined" style="margin-right: 4px;">auto_awesome</span>AI推定</button>
           </div>
-          <div id="estimateBadge" style="font-size: 12px; color: var(--accent); margin-bottom: 15px; display: none;">
+          <div id="estimateBadge" style="font-size: 11px; color: var(--accent); margin-bottom: 5px; display: none;">
+          </div>
+
+          <div id="aiAdviceBox"
+            style="display:none; background: rgba(175, 252, 65, 0.1); border: 1px solid var(--accent); padding: 12px; border-radius: 8px; margin-bottom: 15px;">
+            <div
+              style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--accent); font-weight: bold; font-size: 0.9em;">
+              <span class="material-symbols-outlined" style="font-size: 18px;">lightbulb</span>AIアドバイス
+            </div>
+            <div id="aiAdviceText" style="font-size: 0.85em; margin-bottom: 8px; line-height: 1.4;"></div>
+            <div id="aiBreakdownText" style="font-size: 0.75em; color: var(--text-muted); font-style: italic;"></div>
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -785,8 +795,16 @@
               <canvas id="pfcChart"></canvas>
             </div>
             <div style="display: flex; flex-direction: column; justify-content: center;">
-              <h4 style="margin: 0 0 10px 0;">トレーナーからのアドバイス</h4>
-              <div id="adviceDisplay" style="font-size: 0.9em; line-height: 1.5; color: #fff;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0;">トレーナーの助言</h4>
+                <button onclick="getDailyAIAdvice()"
+                  style="width: auto; padding: 6px 12px; font-size: 11px; background: var(--accent); color: #000; border-radius: 20px;">
+                  <span class="material-symbols-outlined"
+                    style="font-size: 14px; margin-right: 4px;">psychology</span>AIに聞く
+                </button>
+              </div>
+              <div id="adviceDisplay"
+                style="font-size: 0.9em; line-height: 1.5; color: #fff; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px;">
                 まだ記録がありません。
               </div>
             </div>
@@ -899,6 +917,7 @@
       let editingId = null;
       let currentUser = localStorage.getItem('kin_user');
       let allExercises = []; // 種目リストを保持
+      let currentDayMeals = []; // 今日の食事リストを保持 (AIアドバイス用)
 
       // 初期化処理
       if (currentUser) {
@@ -1582,6 +1601,15 @@
           badge.style.display = 'block';
           badge.textContent = `ソース: ${data.source} (${data.food_name})`;
 
+          // アドバイスと内訳の表示
+          if (data.advice || data.breakdown) {
+            document.getElementById('aiAdviceBox').style.display = 'block';
+            document.getElementById('aiAdviceText').textContent = data.advice || '';
+            document.getElementById('aiBreakdownText').textContent = data.breakdown ? `【推定の内訳】: ${data.breakdown}` : '';
+          } else {
+            document.getElementById('aiAdviceBox').style.display = 'none';
+          }
+
         } catch (e) {
           alert("エラー: " + e.message);
           console.error(e);
@@ -1628,6 +1656,7 @@
           document.getElementById('mealFat').value = '';
           document.getElementById('mealCarb').value = '';
           document.getElementById('estimateBadge').style.display = 'none';
+          document.getElementById('aiAdviceBox').style.display = 'none'; // アドバイスも消す
           loadMeals();
         } else {
           alert('エラーが発生しました');
@@ -1640,6 +1669,7 @@
 
         const res = await fetch(`${apiBase}/meals?user_id=${encodeURIComponent(currentUser)}&date=${date}`);
         const meals = await res.json();
+        currentDayMeals = meals; // グローバルに保存
 
         const list = document.getElementById('mealList');
         list.innerHTML = '';
@@ -1794,6 +1824,42 @@
         if (cal === 0) advices.push("まだ記録がありません。何か食べましたか？");
 
         document.getElementById('adviceDisplay').textContent = advices.join("\n");
+      }
+
+      async function getDailyAIAdvice() {
+        if (!currentDayMeals || currentDayMeals.length === 0) {
+          return alert("アドバイスをもらうには、まず食事を記録してください。");
+        }
+
+        const btn = document.querySelector('button[onclick="getDailyAIAdvice()"]');
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined" style="font-size: 14px; margin-right: 4px;">sync</span>生成中...';
+
+        try {
+          const res = await fetch(`${apiBase}/api/daily_advice`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              meals: currentDayMeals,
+              targets: userTargets
+            })
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || "アドバイスの取得に失敗しました");
+
+          const display = document.getElementById('adviceDisplay');
+          display.textContent = data.advice;
+          display.style.borderLeft = "4px solid var(--accent)";
+          display.style.animation = "fadeIn 0.5s ease-out";
+
+        } catch (e) {
+          alert("エラー: " + e.message);
+        } finally {
+          btn.disabled = false;
+          btn.innerHTML = originalText;
+        }
       }
 
       async function deleteMeal(id) {

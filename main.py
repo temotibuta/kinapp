@@ -79,6 +79,10 @@ class WeightLog(BaseModel):
 class EstimationRequest(BaseModel):
     text: str
 
+class AdviceRequest(BaseModel):
+    meals: list
+    targets: dict
+
 DB_FILE = "memo.db"
 
 # 初期化関数
@@ -572,21 +576,24 @@ def estimate_nutrition(req: EstimationRequest):
             # モデル名を修正: gemini-1.5-flash (2.5は存在しない)
             model = genai.GenerativeModel('gemini-1.5-flash')
             prompt = f"""
-            栄養士として、以下の食事の栄養素（カロリー、タンパク質、脂質、炭水化物）を推定してください。
+            栄養士として、以下の食事の栄養素（カロリー、タンパク質、脂質、炭水化物）を精密に推定してください。
             入力: "{text}"
 
             指示:
             1. 日本語で回答してください。
             2. 一般的な1人前の量を基準にしてください。
-            3. 数値は推定値で構いません。
-            4. 出力は以下のJSON形式のみとし、解説やMarkdown（```jsonなど）は一切含めないでください。
+            3. 数値は推定値ですが、栄養士としてできるだけ正確な数値を考えてください。
+            4. 栄養バランスに関する「アドバイス」と、なぜその数値になったかの「内訳（推定根拠）」も含めてください。
+            5. 出力は以下のJSON形式のみとし、Markdown（```jsonなど）は一切含めないでください。
 
             {{
                 "food_name": "料理名 (分量の目安)",
                 "calories": 数値(kcal),
                 "protein": 数値(g),
                 "fat": 数値(g),
-                "carbs": 数値(g)
+                "carbs": 数値(g),
+                "breakdown": "推定の根拠（例: ご飯200g、焼き鮭80gとして計算）",
+                "advice": "栄養士からのアドバイス（例: タンパク質は十分ですが、野菜が不足しています。サラダを追加すると良いでしょう）"
             }}
             """
             response = model.generate_content(prompt)
@@ -608,6 +615,8 @@ def estimate_nutrition(req: EstimationRequest):
                 "protein": float(data.get("protein", 0)),
                 "fat": float(data.get("fat", 0)),
                 "carbs": float(data.get("carbs", 0)),
+                "breakdown": data.get("breakdown", ""),
+                "advice": data.get("advice", ""),
                 "source": "Gemini AI (1.5-flash)"
             }
         except Exception as e:
@@ -615,6 +624,56 @@ def estimate_nutrition(req: EstimationRequest):
             raise HTTPException(status_code=500, detail="AIによる推定に失敗しました。")
     else:
         raise HTTPException(status_code=500, detail="Gemini APIキーが設定されていません。")
+
+@app.post("/api/daily_advice")
+def get_daily_advice(req: AdviceRequest):
+    meals = req.meals
+    targets = req.targets
+    
+    if not GEMINI_API_KEY:
+        raise HTTPException(status_code=500, detail="Gemini APIキーが設定されていません。")
+
+    if not meals:
+        return {"advice": "まだ食事の記録がありません。今日食べたものを入力してください！"}
+
+    meal_summary = "\n".join([f"- {m['meal_type']}: {m['food_name']} ({m['calories']}kcal, P:{m['protein']}g, F:{m['fat']}g, C:{m['carbs']}g)" for m in meals])
+    
+    total_cal = sum(m['calories'] for m in meals)
+    total_p = sum(m['protein'] for m in meals)
+    total_f = sum(m['fat'] for m in meals)
+    total_c = sum(m['carbs'] for m in meals)
+
+    prompt = f"""
+    プロのトレーナー兼栄養士として、今日の食事内容に基づいたアドバイスを150文字程度で提供してください。
+    
+    【目標値】
+    - カロリー: {targets.get('target_calories')}kcal
+    - タンパク質: {targets.get('target_protein')}g
+    - 脂質: {targets.get('target_fat')}g
+    - 炭水化物: {targets.get('target_carbs')}g
+
+    【摂取実績】
+    - 総カロリー: {total_cal}kcal
+    - 総タンパク質: {total_p}g
+    - 総脂質: {total_f}g
+    - 総炭水化物: {total_c}g
+
+    【食事リスト】
+    {meal_summary}
+
+    指示:
+    1. 日本語で、親しみやすくもプロフェッショナルな口調で回答してください。
+    2. あすけんの「うさぎの先生」やパーソナルトレーナーのような、励ましと具体的な改善案を含めてください。
+    3. Markdownは使わず、プレーンテキストで回答してください。
+    """
+    
+    try:
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        response = model.generate_content(prompt)
+        return {"advice": response.text.strip()}
+    except Exception as e:
+        print(f"Advice Gemini Error: {e}")
+        raise HTTPException(status_code=500, detail="アドバイスの生成に失敗しました。")
 
 # メモ更新
 @app.put("/memo/{memo_id}")

@@ -12,6 +12,7 @@ import json
 import google.generativeai as genai
 import re
 
+from datetime import datetime
 app = FastAPI()
 
 # ★ Gemini API Key (環境変数から取得、なければデフォルトを使用)
@@ -137,13 +138,15 @@ def init_db():
         )
     ''')
 
-    # Weightsテーブル
+    # Notificationsテーブル
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS weights (
+        CREATE TABLE IF NOT EXISTS notifications (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT,
-            date TEXT,
-            weight REAL
+            from_user TEXT,
+            type TEXT, -- 'follow'
+            is_read INTEGER DEFAULT 0,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
 
@@ -380,6 +383,9 @@ def add_friend(req: FriendRequest, current_user: str = Query(...)):
 
     try:
         cursor.execute("INSERT INTO friends (user_id, friend_id) VALUES (?, ?)", (current_user, req.friend_username))
+        # 通知を作成
+        cursor.execute("INSERT INTO notifications (user_id, from_user, type) VALUES (?, ?, ?)", 
+                       (req.friend_username, current_user, 'follow'))
         conn.commit()
     except sqlite3.IntegrityError:
         pass # 既に登録済み
@@ -410,6 +416,39 @@ def get_friends(current_user: str = Query(...)):
     
     conn.close()
     return {"following": following, "followers": followers}
+
+# --- Notification API ---
+@app.get("/notifications")
+def get_notifications(current_user: str = Query(...)):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute('''
+        SELECT id, from_user, type, is_read, created_at 
+        FROM notifications 
+        WHERE user_id = ? 
+        ORDER BY created_at DESC LIMIT 20
+    ''', (current_user,))
+    rows = cursor.fetchall()
+    conn.close()
+    return [
+        {
+            "id": r[0],
+            "from_user": r[1],
+            "type": r[2],
+            "is_read": bool(r[3]),
+            "created_at": r[4]
+        }
+        for r in rows
+    ]
+
+@app.post("/notifications/read")
+def mark_notifications_read(current_user: str = Query(...)):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ?", (current_user,))
+    conn.commit()
+    conn.close()
+    return {"message": "通知を既読にしました"}
 
 # --- Settings API ---
 @app.put("/settings/visibility")

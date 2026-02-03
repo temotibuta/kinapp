@@ -16,6 +16,14 @@ from datetime import datetime
 app = FastAPI()
 
 # ★ Gemini API Key (環境変数からのみ取得)
+# ENV loading (optional)
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
+# ★ Gemini API Key (環境変数からのみ取得)
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
@@ -49,6 +57,8 @@ class UserTargets(BaseModel):
     target_protein: float
     target_fat: float
     target_carbs: float
+    target_salt: float = 7.0
+    target_fiber: float = 20.0
 
 class FriendRequest(BaseModel):
     friend_username: str
@@ -70,6 +80,8 @@ class Meal(BaseModel):
     protein: float
     fat: float
     carbs: float
+    salt: float = 0.0
+    fiber: float = 0.0
 
 class WeightLog(BaseModel):
     user_id: str
@@ -128,19 +140,37 @@ def init_db():
         cursor.execute("ALTER TABLE users ADD COLUMN target_carbs REAL DEFAULT 300")
 
     # Mealsテーブル
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS meals (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT,
-            date TEXT,
-            meal_type TEXT,
-            food_name TEXT,
-            calories INTEGER,
-            protein REAL,
-            fat REAL,
-            carbs REAL
-        )
-    ''')
+    cursor.execute("PRAGMA table_info(meals)")
+    meal_columns = [row[1] for row in cursor.fetchall()]
+    if not meal_columns:
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS meals (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT,
+                date TEXT,
+                meal_type TEXT,
+                food_name TEXT,
+                calories INTEGER,
+                protein REAL,
+                fat REAL,
+                carbs REAL,
+                salt REAL DEFAULT 0.0,
+                fiber REAL DEFAULT 0.0
+            )
+        ''')
+    else:
+        if 'salt' not in meal_columns:
+            cursor.execute("ALTER TABLE meals ADD COLUMN salt REAL DEFAULT 0.0")
+        if 'fiber' not in meal_columns:
+            cursor.execute("ALTER TABLE meals ADD COLUMN fiber REAL DEFAULT 0.0")
+
+    # usersテーブルの目標値カラム拡張
+    cursor.execute("PRAGMA table_info(users)")
+    user_columns = [row[1] for row in cursor.fetchall()]
+    if 'target_salt' not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN target_salt REAL DEFAULT 7.0")
+    if 'target_fiber' not in user_columns:
+        cursor.execute("ALTER TABLE users ADD COLUMN target_fiber REAL DEFAULT 20.0")
 
     # Weightsテーブル
     cursor.execute('''
@@ -431,6 +461,40 @@ def get_friends(current_user: str = Query(...)):
     conn.close()
     return {"following": following, "followers": followers}
 
+# --- Notifications API ---
+
+@app.get("/notifications")
+def get_notifications(current_user: str = Query(...)):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, from_user, type, is_read, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT 50", (current_user,))
+    rows = cursor.fetchall()
+    conn.close()
+    
+    res = []
+    for r in rows:
+        res.append({
+            "id": r[0],
+            "from_user": r[1],
+            "type": r[2],
+            "is_read": bool(r[3]),
+            "created_at": r[4]
+        })
+    return res
+
+@app.post("/notifications/read")
+def mark_notifications_read(current_user: str = Query(...)):
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("UPDATE notifications SET is_read = 1 WHERE user_id = ?", (current_user,))
+    conn.commit()
+    conn.close()
+    return {"message": "既読にしました"}
+    followers = [row[0] for row in cursor.fetchall()]
+    
+    conn.close()
+    return {"following": following, "followers": followers}
+
 # --- Notification API ---
 @app.get("/notifications")
 def get_notifications(current_user: str = Query(...)):
@@ -491,7 +555,9 @@ def get_my_info(current_user: str = Query(...)):
             "target_calories": row[2],
             "target_protein": row[3],
             "target_fat": row[4],
-            "target_carbs": row[5]
+            "target_carbs": row[5],
+            "target_salt": row[6] if len(row) > 6 else 7.0,
+            "target_fiber": row[7] if len(row) > 7 else 20.0
         }
     return {}
 
@@ -501,9 +567,9 @@ def update_targets(targets: UserTargets, current_user: str = Query(...)):
     cursor = conn.cursor()
     cursor.execute('''
         UPDATE users 
-        SET target_calories=?, target_protein=?, target_fat=?, target_carbs=?
+        SET target_calories=?, target_protein=?, target_fat=?, target_carbs=?, target_salt=?, target_fiber=?
         WHERE username=?
-    ''', (targets.target_calories, targets.target_protein, targets.target_fat, targets.target_carbs, current_user))
+    ''', (targets.target_calories, targets.target_protein, targets.target_fat, targets.target_carbs, targets.target_salt, targets.target_fiber, current_user))
     conn.commit()
     conn.close()
     return {"message": "目標値を更新しました"}
@@ -527,9 +593,9 @@ def add_meal(meal: Meal):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     cursor.execute('''
-        INSERT INTO meals (user_id, date, meal_type, food_name, calories, protein, fat, carbs)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-    ''', (meal.user_id, meal.date, meal.meal_type, meal.food_name, meal.calories, meal.protein, meal.fat, meal.carbs))
+        INSERT INTO meals (user_id, date, meal_type, food_name, calories, protein, fat, carbs, salt, fiber)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (meal.user_id, meal.date, meal.meal_type, meal.food_name, meal.calories, meal.protein, meal.fat, meal.carbs, meal.salt, meal.fiber))
     conn.commit()
     conn.close()
     return {"message": "食事を記録しました"}
@@ -538,7 +604,7 @@ def add_meal(meal: Meal):
 def get_meals(user_id: str = Query(...), date: Optional[str] = Query(None)):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
-    query = "SELECT id, date, meal_type, food_name, calories, protein, fat, carbs FROM meals WHERE user_id = ?"
+    query = "SELECT id, date, meal_type, food_name, calories, protein, fat, carbs, salt, fiber FROM meals WHERE user_id = ?"
     params = [user_id]
     
     if date:
@@ -552,7 +618,7 @@ def get_meals(user_id: str = Query(...), date: Optional[str] = Query(None)):
     return [
         {
             "id": r[0], "date": r[1], "meal_type": r[2], "food_name": r[3],
-            "calories": r[4], "protein": r[5], "fat": r[6], "carbs": r[7]
+            "calories": r[4], "protein": r[5], "fat": r[6], "carbs": r[7], "salt": r[8], "fiber": r[9]
         }
         for r in rows
     ]
@@ -573,10 +639,9 @@ def estimate_nutrition(req: EstimationRequest):
     # 1. Gemini AI Estimate (High Priority)
     if GEMINI_API_KEY:
         try:
-            # モデル名を修正: gemini-1.5-flash (2.5は存在しない)
-            model = genai.GenerativeModel('gemini-1.5-flash')
+            model = genai.GenerativeModel('gemini-flash-latest')
             prompt = f"""
-            栄養士として、以下の食事の栄養素（カロリー、タンパク質、脂質、炭水化物）を精密に推定してください。
+            栄養士として、以下の食事の栄養素（カロリー、タンパク質、脂質、炭水化物、塩分、食物繊維）を精密に推定してください。
             入力: "{text}"
 
             指示:
@@ -592,15 +657,28 @@ def estimate_nutrition(req: EstimationRequest):
                 "protein": 数値(g),
                 "fat": 数値(g),
                 "carbs": 数値(g),
+                "salt": 数値(g),
+                "fiber": 数値(g),
                 "breakdown": "推定の根拠（例: ご飯200g、焼き鮭80gとして計算）",
-                "advice": "栄養士からのアドバイス（例: タンパク質は十分ですが、野菜が不足しています。サラダを追加すると良いでしょう）"
+                "advice": "栄養士からのアドバイス"
             }}
             """
-            response = model.generate_content(prompt)
-            raw_text = response.text
             
-            # Markdownの除去（もし含まれていれば）
-            json_text = re.sub(r'```json\s*|\s*```|`', '', raw_text).strip()
+            # 2パターンの生成を試みる（バージョンの互換性のため）
+            try:
+                # パターンA: response_mime_type を使用 (新しいライブラリ向け)
+                response = model.generate_content(
+                    prompt,
+                    generation_config={"response_mime_type": "application/json"}
+                )
+                json_text = response.text
+            except Exception:
+                # パターンB: 通常のテキスト生成 (古いライブラリ向け)
+                response = model.generate_content(prompt)
+                json_text = response.text
+
+            # Markdownコードブロックの除去
+            json_text = re.sub(r'```json\s*|\s*```|`', '', json_text).strip()
             
             # JSON部分の抽出（余計なテキストが混ざる対策）
             match = re.search(r'\{.*\}', json_text, re.DOTALL)
@@ -615,13 +693,18 @@ def estimate_nutrition(req: EstimationRequest):
                 "protein": float(data.get("protein", 0)),
                 "fat": float(data.get("fat", 0)),
                 "carbs": float(data.get("carbs", 0)),
+                "salt": float(data.get("salt", 0.0)),
+                "fiber": float(data.get("fiber", 0.0)),
                 "breakdown": data.get("breakdown", ""),
                 "advice": data.get("advice", ""),
                 "source": "Gemini AI (1.5-flash)"
             }
         except Exception as e:
-            print(f"Gemini Error: {e}")
-            raise HTTPException(status_code=500, detail="AIによる推定に失敗しました。")
+            error_msg = str(e)
+            print(f"Gemini Error: {error_msg}")
+            if "429" in error_msg or "ResourceExhausted" in error_msg:
+                raise HTTPException(status_code=429, detail="AIの利用上限（Quota）に達しました。しばらく待ってから再度お試しください。")
+            raise HTTPException(status_code=500, detail=f"AI推定エラー: {error_msg}")
     else:
         raise HTTPException(status_code=500, detail="Gemini APIキーが設定されていません。")
 
@@ -636,27 +719,33 @@ def get_daily_advice(req: AdviceRequest):
     if not meals:
         return {"advice": "まだ食事の記録がありません。今日食べたものを入力してください！"}
 
-    meal_summary = "\n".join([f"- {m['meal_type']}: {m['food_name']} ({m['calories']}kcal, P:{m['protein']}g, F:{m['fat']}g, C:{m['carbs']}g)" for m in meals])
+    meal_summary = "\n".join([f"- {m['meal_type']}: {m['food_name']} ({m['calories']}kcal, P:{m['protein']}g, F:{m['fat']}g, C:{m['carbs']}g, 塩分:{m.get('salt', 0)}g, 繊維:{m.get('fiber', 0)}g)" for m in meals])
     
     total_cal = sum(m['calories'] for m in meals)
     total_p = sum(m['protein'] for m in meals)
     total_f = sum(m['fat'] for m in meals)
     total_c = sum(m['carbs'] for m in meals)
+    total_salt = sum(m.get('salt', 0) for m in meals)
+    total_fiber = sum(m.get('fiber', 0) for m in meals)
 
     prompt = f"""
-    プロのトレーナー兼栄養士として、今日の食事内容に基づいたアドバイスを150文字程度で提供してください。
+    プロのトレーナー兼栄養士として、今日の食事内容に基づいたアドバイスを200文字程度で提供してください。
     
     【目標値】
     - カロリー: {targets.get('target_calories')}kcal
     - タンパク質: {targets.get('target_protein')}g
     - 脂質: {targets.get('target_fat')}g
     - 炭水化物: {targets.get('target_carbs')}g
+    - 塩分: {targets.get('target_salt')}g
+    - 食物繊維: {targets.get('target_fiber')}g
 
     【摂取実績】
     - 総カロリー: {total_cal}kcal
     - 総タンパク質: {total_p}g
     - 総脂質: {total_f}g
     - 総炭水化物: {total_c}g
+    - 総塩分: {total_salt}g
+    - 総食物繊維: {total_fiber}g
 
     【食事リスト】
     {meal_summary}
@@ -664,11 +753,12 @@ def get_daily_advice(req: AdviceRequest):
     指示:
     1. 日本語で、親しみやすくもプロフェッショナルな口調で回答してください。
     2. あすけんの「うさぎの先生」やパーソナルトレーナーのような、励ましと具体的な改善案を含めてください。
-    3. Markdownは使わず、プレーンテキストで回答してください。
+    3. 塩分過多や食物繊維不足などがあれば、具体的に指摘してください。
+    4. Markdownは使わず、プレーンテキストで回答してください。
     """
     
     try:
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-flash-latest')
         response = model.generate_content(prompt)
         return {"advice": response.text.strip()}
     except Exception as e:

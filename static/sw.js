@@ -1,4 +1,4 @@
-const CACHE_NAME = 'kinapp-v1';
+const CACHE_NAME = 'kinapp-v9';
 const urlsToCache = [
     '/',
     '/static/index.html',
@@ -27,7 +27,7 @@ self.addEventListener('fetch', event => {
     const { request } = event;
     const url = new URL(request.url);
 
-    // API requests: Network-first strategy
+    // AI推定やデータ取得APIはキャッシュしない (常にネットワーク)
     if (url.pathname.startsWith('/api/') ||
         url.pathname.startsWith('/memo') ||
         url.pathname.startsWith('/meals') ||
@@ -36,23 +36,8 @@ self.addEventListener('fetch', event => {
         url.pathname.startsWith('/friends') ||
         url.pathname.startsWith('/users') ||
         url.pathname.startsWith('/settings')) {
-        event.respondWith(
-            fetch(request)
-                .then(response => {
-                    // Clone and cache successful responses
-                    if (response.ok) {
-                        const responseClone = response.clone();
-                        caches.open(CACHE_NAME).then(cache => {
-                            cache.put(request, responseClone);
-                        });
-                    }
-                    return response;
-                })
-                .catch(() => {
-                    // Fallback to cache if offline
-                    return caches.match(request);
-                })
-        );
+        event.respondWith(fetch(request));
+        return;
     }
     // Static assets: Cache-first strategy
     else {

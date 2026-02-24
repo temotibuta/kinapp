@@ -3,142 +3,94 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KinApp - Motivational Workout</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KinApp - AI Nutrition & Workout</title>
 
-  <!-- PWA Manifest -->
+  <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="/static/manifest.json">
-
-  <!-- iOS PWA Support -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="KinApp">
-  <link rel="apple-touch-icon" href="/static/icon-192.png">
 
-  <!-- Theme Color -->
-  <meta name="theme-color" content="#affc41">
+  <!-- Fonts -->
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Noto+Sans+JP:wght@300;400;700&display=swap"
+    rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0"
+    rel="stylesheet" />
 
+  <!-- React & Tailwind (CDN) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            dark: '#121212',
+            glass: 'rgba(255, 255, 255, 0.08)',
+            neon: '#affc41',
+            alert: '#ff0055',
+            primary: '#affc41',
+            secondary: '#b3b3b3'
+          },
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans JP', 'sans-serif'],
+          },
+          backdropBlur: {
+            xs: '2px',
+          }
+        }
+      }
+    }
+  </script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap');
-
-    .material-symbols-outlined {
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-      vertical-align: middle;
-      margin-right: 8px;
-    }
-
-    :root {
-      /* Palette: Motivational Dark Mode */
-      --primary: #affc41;
-      /* Nike Volt / Neon Lime */
-      --primary-hover: #96d936;
-      --primary-light: rgba(175, 252, 65, 0.2);
-
-      --bg: #0f172a;
-      /* Slate 900 - Deep dark background */
-      --card-bg: #1e293b;
-      /* Slate 800 - Lighter card background */
-      --sidebar-bg: #111827;
-      /* Gray 900 */
-
-      --text: #f8fafc;
-      /* Slate 50 */
-      --text-muted: #94a3b8;
-      /* Slate 400 */
-      --text-on-primary: #0f172a;
-      /* Black text on neon button */
-
-      --border: #334155;
-      /* Slate 700 */
-
-      --danger: #ef4444;
-      --danger-bg: rgba(239, 68, 68, 0.2);
-      --success: #10b981;
-
-      /* Shadows & Effects */
-      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
-      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
-      --glow: 0 0 15px rgba(175, 252, 65, 0.4);
-
-      --radius-lg: 16px;
-      --radius-md: 12px;
-      --radius-sm: 8px;
-    }
-
     body {
-      font-family: 'Inter', 'Noto Sans JP', -apple-system, BlinkMacSystemFont, sans-serif;
-      font-size: 16px;
-      background-color: var(--bg);
-      background-image: radial-gradient(circle at top right, #1e293b 0%, transparent 40%), radial-gradient(circle at bottom left, #1e293b 0%, transparent 40%);
-      color: var(--text);
-      margin: 0;
-      display: flex;
-      min-height: 100vh;
-      line-height: 1.5;
+      background-color: #121212;
+      background-image: radial-gradient(circle at 10% 20%, rgba(175, 252, 65, 0.05) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(255, 0, 85, 0.05) 0%, transparent 40%);
+      color: white;
+      padding-bottom: 90px;
+      font-family: 'Inter', 'Noto Sans JP', sans-serif;
+      -webkit-tap-highlight-color: transparent;
     }
 
-    /* Sidebar */
-    .sidebar {
-      width: 260px;
-      background-color: var(--sidebar-bg);
-      padding: 32px 24px;
-      display: flex;
-      flex-direction: column;
-      border-right: 1px solid var(--border);
-      z-index: 10;
+    /* Glassmorphism Utilities */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
     }
 
-    .sidebar h1 {
-      font-size: 24px;
-      font-weight: 900;
-      text-transform: uppercase;
-      font-style: italic;
-      text-align: left;
-      margin-bottom: 48px;
-      color: var(--primary);
-      text-shadow: 0 0 10px rgba(175, 252, 65, 0.3);
-      letter-spacing: -0.5px;
+    .glass-nav {
+      background: rgba(18, 18, 18, 0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
-    .menu-item {
-      padding: 14px 18px;
-      margin-bottom: 8px;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-weight: 600;
-      color: var(--text-muted);
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border: 1px solid transparent;
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
     }
 
-    .menu-item:hover {
-      background-color: rgba(255, 255, 255, 0.05);
-      color: var(--text);
+    ::-webkit-scrollbar-track {
+      background: transparent;
     }
 
-    .menu-item.active {
-      background-color: rgba(175, 252, 65, 0.1);
-      color: var(--primary);
-      border-color: var(--primary-light);
-      box-shadow: 0 0 10px rgba(175, 252, 65, 0.1);
+    ::-webkit-scrollbar-thumb {
+      background: #333;
+      border-radius: 3px;
     }
 
-    /* Main Content */
-    .main-content {
-      flex: 1;
-      padding: 40px;
-      max-width: 900px;
-      margin: 0 auto;
-      animation: fadeIn 0.4s ease-out;
-    }
-
+    /* Animations */
     @keyframes fadeIn {
       from {
         opacity: 0;
@@ -151,1679 +103,1530 @@
       }
     }
 
-    h1,
-    h2,
-    h3 {
-      font-weight: 900;
-      font-style: italic;
-      letter-spacing: -0.02em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      font-size: 2.5em;
-    }
-
-    h2 {
-      font-size: 2em;
-    }
-
-    h3 {
-      font-size: 1.5em;
-    }
-
-    h2 {
-      margin-bottom: 24px;
-      letter-spacing: 0.5px;
-      border-left: 5px solid var(--primary);
-      padding-left: 16px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: var(--radius-lg);
-      padding: 32px;
-      box-shadow: var(--shadow-lg);
-      margin-bottom: 24px;
-      transition: transform 0.2s, box-shadow 0.2s;
-      border: 1px solid var(--border);
-    }
-
-    .card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
-      border-color: var(--primary);
-    }
-
-    label {
-      display: block;
-      margin-bottom: 8px;
-      font-weight: 600;
-      color: var(--text-muted);
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    input,
-    select,
-    textarea {
-      width: 100%;
-      padding: 14px 16px;
-      border: 1px solid var(--border);
-      background-color: #0f172a;
-      /* Darker input bg */
-      border-radius: var(--radius-md);
-      margin-bottom: 24px;
-      box-sizing: border-box;
-      font-size: 16px;
-      font-weight: 500;
-      transition: all 0.2s;
-      color: var(--text);
-    }
-
-    input:focus,
-    select:focus,
-    textarea:focus {
-      outline: none;
-      background-color: #1e293b;
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px var(--primary-light);
-    }
-
-    button {
-      width: 100%;
-      padding: 16px;
-      background: var(--primary);
-      color: var(--text-on-primary);
-      border: none;
-      border-radius: var(--radius-md);
-      font-size: 16px;
-      font-weight: 800;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      cursor: pointer;
-      transition: all 0.2s;
-      box-shadow: var(--glow);
-    }
-
-    button:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 0 20px rgba(175, 252, 65, 0.6);
-      filter: brightness(1.1);
-    }
-
-    button:active {
-      transform: translateY(0);
-    }
-
-    button.secondary {
-      background: transparent;
-      color: var(--text-muted);
-      border: 1px solid var(--border);
-      box-shadow: none;
-    }
-
-    button.secondary:hover {
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--text);
-      border-color: var(--text-muted);
-    }
-
-    button.danger {
-      background: transparent;
-      color: var(--danger);
-      border: 1px solid var(--danger);
-      box-shadow: none;
-      width: auto;
-      padding: 8px 16px;
-      font-size: 13px;
-    }
-
-    button.danger:hover {
-      background: var(--danger-bg);
-      box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
-    }
-
-    button.edit {
-      background: var(--border);
-      color: var(--text);
-      width: auto;
-      padding: 8px 16px;
-      font-size: 13px;
-      margin-right: 8px;
-      box-shadow: none;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* List Styles */
-    #memoList li,
-    #exerciseList li {
-      background: var(--card-bg);
-      border: 1px solid var(--border);
-      padding: 24px;
-      border-radius: var(--radius-md);
-      margin-bottom: 16px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: all 0.2s;
-    }
-
-    #memoList li:hover {
-      border-color: var(--primary);
-      transform: translateX(4px);
-    }
-
-    .memo-content {
-      flex: 1;
-    }
-
-    .memo-meta {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 8px;
-      display: flex;
-      align-items: center;
-    }
-
-    .memo-main {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--text);
-      letter-spacing: 0.5px;
-    }
-
-    .memo-main span {
-      color: var(--primary);
-    }
-
-    .memo-note {
-      font-size: 14px;
-      margin-top: 8px;
-      color: var(--text-muted);
-      background: #0f172a;
-      padding: 8px 12px;
-      border-radius: 6px;
-      border-left: 2px solid var(--border);
-    }
-
-    /* Filters (Segmented Control) */
-    .filter-group {
-      display: inline-flex;
-      background: #0f172a;
-      padding: 4px;
-      border-radius: var(--radius-md);
-      margin-bottom: 24px;
-      gap: 4px;
-      border: 1px solid var(--border);
-    }
-
-    .filter-option {
-      padding: 8px 16px;
-      cursor: pointer;
-      border-radius: var(--radius-sm);
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text-muted);
-      transition: all 0.2s;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      margin: 0;
-    }
-
-    .filter-option:hover {
-      color: var(--text);
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .filter-option.active {
-      background: var(--card-bg);
-      color: var(--primary);
-      border: 1px solid var(--primary);
-      box-shadow: 0 0 10px rgba(175, 252, 65, 0.1);
-    }
-
-    .filter-option input {
-      display: none;
-    }
-
-    /* Animations */
-    .fade-in {
+    .animate-fade-in {
       animation: fadeIn 0.3s ease-out forwards;
     }
 
-    /* Tabs */
-    .tabs {
-      display: flex;
-      background: #0f172a;
-      padding: 4px;
-      border-radius: var(--radius-lg);
-      margin-bottom: 24px;
-      border: none;
+    .active-tab {
+      color: #affc41;
     }
 
-    .tab {
-      flex: 1;
-      padding: 10px;
-      text-align: center;
-      border-radius: var(--radius-sm);
-      cursor: pointer;
-      font-weight: 600;
-      color: var(--text-muted);
-      transition: all 0.2s;
-    }
-
-    .tab.active {
-      background: var(--card-bg);
-      color: var(--primary);
-      box-shadow: none;
-      border: 1px solid var(--primary);
-      border-bottom: none;
-      margin-bottom: 0;
-    }
-
-    /* Login Screen */
-    .login-wrapper {
-      background: #0f172a;
-      background-image: radial-gradient(circle at center, #1e293b 0%, #0f172a 70%);
-    }
-
-    .auth-container .card {
-      padding: 40px;
-      border: 1px solid var(--border);
-      backdrop-filter: blur(10px);
-      background: rgba(30, 41, 59, 0.95);
-      box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
-    }
-
-    /* Mobile Bottom Navigation */
-    .mobile-nav {
-      display: none;
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      background: var(--sidebar-bg);
-      border-top: 1px solid var(--border);
-      height: 64px;
-      z-index: 1000;
-      justify-content: space-around;
-      align-items: center;
-      padding: 0 10px;
-    }
-
-    .mobile-nav-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      color: var(--text-muted);
-      font-size: 10px;
-      cursor: pointer;
-      gap: 4px;
-    }
-
-    .mobile-nav-item.active {
-      color: var(--primary);
-    }
-
-    .mobile-nav-item .material-symbols-outlined {
-      font-size: 24px;
-      margin-right: 0;
-    }
-
-    /* Responsive Design */
-    @media (max-width: 768px) {
-      body {
-        flex-direction: column;
-      }
-
-      .sidebar {
-        display: none;
-      }
-
-      .mobile-nav {
-        display: flex;
-      }
-
-      .main-content {
-        padding: 20px 16px 100px 16px;
-        width: 100%;
-        box-sizing: border-box;
-      }
-
-      .card {
-        padding: 20px 16px;
-      }
-
-      h1 {
-        font-size: 2em;
-      }
-
-      h2 {
-        font-size: 1.5em;
-      }
-
-      .filter-group {
-        display: flex;
-        overflow-x: auto;
-        width: 100%;
-      }
-
-      .filter-option {
-        flex-shrink: 0;
-        white-space: nowrap;
-      }
+    .active-tab span {
+      font-variation-settings: 'FILL' 1;
     }
   </style>
 </head>
 
 <body>
+  <div id="root"></div>
 
-  <!-- PWA Install Prompt -->
-  <div id="installPrompt"
-    style="display: none; position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; background: linear-gradient(135deg, var(--primary), var(--accent)); padding: 16px 24px; border-radius: 12px; box-shadow: 0 8px 32px rgba(175, 252, 65, 0.3); max-width: 90%; animation: slideUp 0.3s ease;">
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <span class="material-symbols-outlined" style="font-size: 32px; color: #000;">install_mobile</span>
-      <div style="flex: 1;">
-        <div style="font-weight: bold; color: #000; margin-bottom: 4px;">KinAppをインストール</div>
-        <div style="font-size: 0.85em; color: #0f172a;">ホーム画面に追加してアプリのように使えます</div>
-      </div>
-      <button onclick="installPWA()"
-        style="background: #0f172a; color: var(--accent); border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">インストール</button>
-      <button onclick="dismissInstallPrompt()"
-        style="background: transparent; border: none; color: #000; cursor: pointer; padding: 8px;">
-        <span class="material-symbols-outlined">close</span>
-      </button>
-    </div>
-  </div>
+  <script type="text/babel">
+    const { useState, useEffect, useMemo, useRef, useCallback } = React;
 
-  <!-- 認証画面 (ログイン/登録) -->
-  <div id="authSection" class="login-wrapper">
-    <div class="auth-container">
-      <div class="card">
-        <h1 style="text-align:center;">💪 Traning Memo</h1>
-        <div class="tabs">
-          <div class="tab active" onclick="showAuthTab('login')">ログイン</div>
-          <div class="tab" onclick="showAuthTab('register')">新規登録</div>
-        </div>
+    // --- Mock constants for dev ---
+    const API_BASE = '/api'; // In real app, empty string if same origin
 
-        <div id="loginFormContainer">
-          <form id="loginForm">
-            <label>ユーザー名</label>
-            <input type="text" id="loginUsername" required placeholder="ユーザー名を入力">
-            <label>パスワード</label>
-            <input type="password" id="loginPassword" required placeholder="パスワード">
-            <button type="submit">ログイン</button>
-            <p id="loginError" style="color: var(--danger); font-weight: bold; margin-top: 10px; display: none;"></p>
-          </form>
-        </div>
+    // --- Components ---
 
-        <div id="registerFormContainer" class="hidden">
-          <form id="registerForm">
-            <label>ユーザー名 (新規)</label>
-            <input type="text" id="regUsername" required placeholder="希望のユーザー名">
-            <label>パスワード</label>
-            <input type="password" id="regPassword" required placeholder="パスワード (1文字以上)">
-            <button type="submit">登録する</button>
-            <p id="regError" style="color: var(--danger); font-weight: bold; margin-top: 10px; display: none;"></p>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+    // 1. Navigation
+    const NavBar = ({ activeTab, setTab }) => {
+      const tabs = [
+        { id: 'dashboard', icon: 'monitoring', label: 'Home' },
+        { id: 'record', icon: 'restaurant', label: 'Meals' },
+        { id: 'workout', icon: 'fitness_center', label: 'Workout' },
+        { id: 'friends', icon: 'groups', label: 'Friends' },
+        { id: 'settings', icon: 'settings', label: 'Settings' },
+      ];
 
-  <!-- アプリメイン画面 -->
-  <div id="appSection" class="hidden" style="width: 100%; display: flex;">
-    <!-- サイドナビゲーション (PC) -->
-    <div class="sidebar">
-      <h1 style="display: flex; align-items: center;"><span class="material-symbols-outlined"
-          style="font-size: 1.2em;">fitness_center</span>KinApp</h1>
-      <div class="menu-item active" onclick="switchPage('record')"><span
-          class="material-symbols-outlined">edit_note</span>記録する</div>
-      <div class="menu-item" onclick="switchPage('history')"><span class="material-symbols-outlined">history</span>履歴・検索
-      </div>
-      <div class="menu-item" onclick="switchPage('meals')"><span class="material-symbols-outlined">restaurant</span>食事
-      </div>
-      <div class="menu-item" onclick="switchPage('weight')"><span
-          class="material-symbols-outlined">monitor_weight</span>体重
-      </div>
-      <div class="menu-item" onclick="switchPage('friends')"><span class="material-symbols-outlined">group</span>フレンド
-      </div>
-      <div class="menu-item" onclick="switchPage('settings')"><span class="material-symbols-outlined">settings</span>設定
-      </div>
-      <div style="flex-grow: 1;"></div>
-      <div style="margin-bottom: 10px; font-weight: bold; display: flex; align-items: center;"><span
-          class="material-symbols-outlined">person</span><span id="currentUserDisplay"></span></div>
-      <div class="menu-item" onclick="logout()" style="color: var(--danger);"><span
-          class="material-symbols-outlined">logout</span>ログアウト</div>
-    </div>
-
-    <!-- モバイルボトムナビゲーション -->
-    <nav class="mobile-nav">
-      <div class="mobile-nav-item active" onclick="switchPage('record')" id="m-nav-record">
-        <span class="material-symbols-outlined">edit_note</span>
-        <span>記録</span>
-      </div>
-      <div class="mobile-nav-item" onclick="switchPage('history')" id="m-nav-history">
-        <span class="material-symbols-outlined">history</span>
-        <span>履歴</span>
-      </div>
-      <div class="mobile-nav-item" onclick="switchPage('meals')" id="m-nav-meals">
-        <span class="material-symbols-outlined">restaurant</span>
-        <span>食事</span>
-      </div>
-      <div class="mobile-nav-item" onclick="switchPage('weight')" id="m-nav-weight">
-        <span class="material-symbols-outlined">monitor_weight</span>
-        <span>体重</span>
-      </div>
-      <div class="mobile-nav-item" onclick="switchPage('settings')" id="m-nav-settings">
-        <span class="material-symbols-outlined">settings</span>
-        <span>設定</span>
-      </div>
-    </nav>
-
-    <!-- メインコンテンツ -->
-    <div class="main-content">
-
-      <!-- ページ: 記録 -->
-      <div id="pageRecord" class="page-content">
-        <h2>今日のトレーニングを記録</h2>
-        <div class="card">
-          <form id="memoForm">
-            <input type="hidden" id="userId">
-
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <label style="margin-bottom: 0;">日付 (今日は非表示中)</label>
-              <button type="button" class="secondary" onclick="toggleDateInput()"
-                style="width: auto; padding: 4px 8px; font-size: 12px;">日付を変更する</button>
-            </div>
-            <input type="date" id="date" required class="hidden" style="margin-top: 8px;">
-
-            <label>種目</label>
-            <select id="exerciseSelect" onchange="checkExerciseCustom()" style="margin-bottom: 8px;">
-              <option value="" disabled selected>種目を選択してください</option>
-            </select>
-            <input type="text" id="exerciseCustom" placeholder="種目名を入力" class="hidden">
-
-            <div style="display: flex; gap: 10px;">
-              <div style="flex: 1;">
-                <label>重量 (kg)</label>
-                <input type="number" id="weight" step="0.5" required>
-              </div>
-              <div style="flex: 1;">
-                <label>回数 (reps)</label>
-                <input type="number" id="reps" required>
-              </div>
-            </div>
-
-            <label>メモ</label>
-            <input type="text" id="note" placeholder="感想や調子など">
-
-            <button type="submit" id="submitBtn">保存する</button>
-            <button type="button" id="cancelEditBtn" class="secondary hidden" onclick="cancelEdit()"
-              style="margin-top: 10px;">キャンセル</button>
-          </form>
-        </div>
-      </div>
-
-      <!-- ページ: 履歴 -->
-      <div id="pageHistory" class="page-content hidden">
-        <h2>履歴 & 検索</h2>
-        <div class="card">
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="text" id="searchExercise" placeholder="種目で検索..." style="margin-bottom: 0;">
-            <button onclick="searchMemos()" style="width: auto;">検索</button>
+      return (
+        <nav className="glass-nav fixed bottom-0 w-full pb-safe pt-2 px-4 z-50">
+          <div className="flex justify-between items-center max-w-md mx-auto h-16">
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setTab(tab.id)}
+                className={`flex flex-col items-center justify-center w-full h-full transition-all duration-300 ${activeTab === tab.id ? 'active-tab scale-110' : 'text-gray-500 hover:text-gray-300'}`}
+              >
+                <span className="material-symbols-outlined text-2xl mb-1">{tab.icon}</span>
+                <span className="text-[10px] font-medium tracking-wide">{tab.label}</span>
+              </button>
+            ))}
           </div>
+        </nav>
+      );
+    };
+    // Global User State (Simple context replacement)
+    const UserContext = React.createContext(null);
 
-          <!-- 表示切り替えスイッチ (Segmented Control) -->
-          <div class="filter-group">
-            <label class="filter-option active" id="filterMineLabel">
-              <input type="radio" name="viewFilter" value="mine" checked onchange="updateFilterUI()">
-              自分のみ
-            </label>
-            <label class="filter-option" id="filterFriendsLabel">
-              <input type="radio" name="viewFilter" value="friends" onchange="updateFilterUI()">
-              フレンド (フォロー中)
-            </label>
-            <label class="filter-option" id="filterAllLabel">
-              <input type="radio" name="viewFilter" value="all" onchange="updateFilterUI()">
-              全員の記録
-            </label>
-          </div>
+    // 2. Dashboard View with Real Data
+    const Dashboard = () => {
+      const { currentUser, setShowNotifs, settingsVersion } = React.useContext(UserContext);
+      const [meals, setMeals] = useState([]);
+      const [targets, setTargets] = useState({ cal: 2000, p: 60, f: 60, c: 300, salt: 7.0, fiber: 20.0 });
+      const [today, setToday] = useState(new Date().toISOString().split('T')[0]);
+      const [score, setScore] = useState(0);
+      const [unreadCount, setUnreadCount] = useState(0);
+      const [workoutSummary, setWorkoutSummary] = useState(null);
+      const chartRef = useRef(null);
+      const canvasRef = useRef(null);
 
-          <button onclick="loadMemos()" class="secondary" style="margin-bottom: 10px;">リロード / 全件表示</button>
+      // Fetch Data
+      useEffect(() => {
+        const fetchData = async () => {
+          try {
+            // 1. Get Targets
+            const userRes = await fetch(`/users/me?current_user=${encodeURIComponent(currentUser)}`);
+            if (userRes.ok) {
+              const userData = await userRes.json();
+              if (userData.target_calories) {
+                setTargets({
+                  cal: userData.target_calories,
+                  p: userData.target_protein,
+                  f: userData.target_fat,
+                  c: userData.target_carbs,
+                  salt: userData.target_salt || 7.0,
+                  fiber: userData.target_fiber || 20.0
+                });
+              }
+            }
 
-          <ul id="memoList"></ul>
-        </div>
-      </div>
+            // 2. Get Meals
+            const mealsRes = await fetch(`/meals?user_id=${encodeURIComponent(currentUser)}&date=${today}`);
+            if (mealsRes.ok) {
+              setMeals(await mealsRes.json());
+            }
 
-      <!-- ページ: 食事管理 -->
-      <div id="pageMeals" class="page-content hidden">
-        <h2>食事の記録</h2>
+            // 3. Get Unread Notifs
+            const notifRes = await fetch(`/notifications?current_user=${encodeURIComponent(currentUser)}`);
+            if (notifRes.ok) {
+              const notifs = await notifRes.json();
+              setUnreadCount(notifs.filter(n => !n.is_read).length);
+            }
 
-        <!-- 食事入力フォーム -->
-        <div class="card">
-          <label>日付</label>
-          <input type="date" id="mealDate">
-
-          <label>食事タイプ</label>
-          <select id="mealType">
-            <option value="Breakfast">朝食</option>
-            <option value="Lunch">昼食</option>
-            <option value="Dinner">夕食</option>
-            <option value="Snack">間食</option>
-          </select>
-
-          <label>食べたもの (AI推定機能付き)</label>
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="text" id="foodName" placeholder="例: 牛丼, バナナ, チキンサラダ" style="margin-bottom:0;">
-            <button onclick="estimateNutrition()" style="width: auto; background: var(--accent); color: #000;"><span
-                class="material-symbols-outlined" style="margin-right: 4px;">auto_awesome</span>AI推定</button>
-          </div>
-          <div id="estimateBadge" style="font-size: 12px; color: var(--accent); margin-bottom: 15px; display: none;">
-          </div>
-
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div>
-              <label>カロリー (kcal)</label>
-              <input type="number" id="mealCal" placeholder="0">
-            </div>
-            <div>
-              <label>タンパク質 (g)</label>
-              <input type="number" step="0.1" id="mealPro" placeholder="0">
-            </div>
-            <div>
-              <label>脂質 (g)</label>
-              <input type="number" step="0.1" id="mealFat" placeholder="0">
-            </div>
-            <div>
-              <label>炭水化物 (g)</label>
-              <input type="number" step="0.1" id="mealCarb" placeholder="0">
-            </div>
-          </div>
-
-          <button onclick="addMeal()">記録する</button>
-        </div>
-
-        <div class="card">
-          <h3>今日はこれだけ食べました</h3>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
-            <h1 id="scoreDisplay" style="font-size:3em; margin:0; text-shadow: 0 0 10px var(--accent);">--点</h1>
-            <div style="text-align: right;">
-              <div style="font-size:0.9em; color:var(--text-light);">摂取カロリー</div>
-              <div style="font-size:1.5em; font-weight:bold;" id="calProgressText">0 / 0 kcal</div>
-            </div>
-          </div>
-
-          <!-- カロリーバー -->
-          <div style="background:#333; height:10px; border-radius:5px; overflow:hidden; margin-bottom: 20px;">
-            <div id="calProgressBar" style="width:0%; height:100%; background:var(--accent); transition: width 0.5s;">
-            </div>
-          </div>
-
-          <!-- チャートとアドバイスの2カラム -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-            <div style="position: relative; height: 200px;">
-              <canvas id="pfcChart"></canvas>
-            </div>
-            <div style="display: flex; flex-direction: column; justify-content: center;">
-              <h4 style="margin: 0 0 10px 0;">トレーナーからのアドバイス</h4>
-              <div id="adviceDisplay" style="font-size: 0.9em; line-height: 1.5; color: #fff;">
-                まだ記録がありません。
-              </div>
-            </div>
-          </div>
-
-          <ul id="mealList" style="padding: 0; list-style: none; margin-top: 20px;"></ul>
-        </div>
-      </div>
-
-      <!-- ページ: 体重管理 -->
-      <div id="pageWeight" class="page-content hidden">
-        <h2>体重管理</h2>
-        <div class="card">
-          <label>日付</label>
-          <input type="date" id="weightDate">
-          <label>体重 (kg)</label>
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <input type="number" step="0.1" id="weightInput" placeholder="0.0" style="margin-bottom:0;">
-            <button onclick="addWeight()" style="width: auto;">記録する</button>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>体重推移</h3>
-          <div style="position: relative; height: 300px; margin-bottom: 20px;">
-            <canvas id="weightChart"></canvas>
-          </div>
-          <div id="weightSummary" style="font-size: 0.9em; color: var(--text-muted);">
-            記録を読み込み中...
-          </div>
-        </div>
-      </div>
-
-      <!-- ページ: フレンド -->
-      <div id="pageFriends" class="page-content hidden">
-        <h2>フレンド管理</h2>
-        <div class="card">
-          <label>ユーザー検索</label>
-          <div style="display: flex; gap: 10px;">
-            <input type="text" id="userSearchInput" placeholder="ユーザー名を入力" style="margin-bottom: 0;">
-            <button onclick="searchUsers()" style="width: auto;">検索</button>
-          </div>
-          <ul id="useruSearchResults" style="margin-top: 10px; padding: 0; list-style: none;"></ul>
-        </div>
-
-        <div class="card">
-          <h3>フォロー中 <span id="followingCount">(0)</span></h3>
-          <ul id="followingList" style="padding: 0; list-style: none;"></ul>
-        </div>
-
-        <div class="card">
-          <h3>フォロワー (あなたをフォローしている人) <span id="followersCount">(0)</span></h3>
-          <ul id="followersList" style="padding: 0; list-style: none;"></ul>
-        </div>
-      </div>
-
-      <!-- ページ: 設定 (種目設定含む) -->
-      <div id="pageSettings" class="page-content hidden">
-        <h2>設定</h2>
-
-        <div class="card">
-          <h3>公開設定</h3>
-          <p style="color: var(--text-muted); margin-bottom: 15px;">あなたの記録を誰に見せるか設定します。</p>
-          <div class="filter-group" style="margin-bottom: 20px;">
-            <label class="filter-option" id="visPublic">
-              <input type="radio" name="visibility" value="public" onchange="updateVisibilitySetting()"> 全体公開
-            </label>
-            <label class="filter-option" id="visFriends">
-              <input type="radio" name="visibility" value="friends" onchange="updateVisibilitySetting()"> フレンドのみ
-            </label>
-            <label class="filter-option" id="visPrivate">
-              <input type="radio" name="visibility" value="private" onchange="updateVisibilitySetting()"> 非公開
-            </label>
-          </div>
-        </div>
-
-        <div class="card">
-          <h3>目標設定 (1日あたり)</h3>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-            <div><label>カロリー (kcal)</label><input type="number" id="targetCal" placeholder="2000"></div>
-            <div><label>タンパク質 (g)</label><input type="number" id="targetPro" placeholder="60"></div>
-            <div>
-              <div><label>脂質 (g)</label><input type="number" id="targetFat" placeholder="60"></div>
-              <div><label>炭水化物 (g)</label><input type="number" id="targetCarb" placeholder="300"></div>
-            </div>
-            <button onclick="saveTargets()">目標を保存</button>
-          </div>
-
-          <div class="card">
-            <h3>種目の管理</h3>
-            <p style="color: var(--text-muted); margin-bottom: 20px;">
-              プルダウンに表示する種目を追加・削除できます。
-            </p>
-            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-              <input type="text" id="newExerciseName" placeholder="新しい種目を追加" style="margin-bottom: 0;">
-              <button onclick="addExercise()" style="width: auto;">追加</button>
-            </div>
-
-            <ul id="exerciseList" style="list-style: none; padding: 0;">
-              <!-- JSで描画 -->
-            </ul>
-          </div>
-        </div>
-
-      </div>
-    </div>
-
-    <script>
-      const apiBase = '';
-      let editingId = null;
-      let currentUser = localStorage.getItem('kin_user');
-      let allExercises = []; // 種目リストを保持
-
-      // 初期化処理
-      if (currentUser) {
-        showApp(currentUser);
-      } else {
-        showAuth();
-      }
-
-      // --- 画面切り替え ---
-      function showAuthTab(tab) {
-        const loginDiv = document.getElementById('loginFormContainer');
-        const regDiv = document.getElementById('registerFormContainer');
-        const tabs = document.querySelectorAll('.tab');
-
-        // エラー表示をリセット
-        document.getElementById('loginError').style.display = 'none';
-        document.getElementById('regError').style.display = 'none';
-
-        if (tab === 'login') {
-          loginDiv.classList.remove('hidden');
-          regDiv.classList.add('hidden');
-          tabs[0].classList.add('active');
-          tabs[1].classList.remove('active');
-        } else {
-          loginDiv.classList.add('hidden');
-          regDiv.classList.remove('hidden');
-          tabs[0].classList.remove('active');
-          tabs[1].classList.add('active');
-        }
-      }
-
-      function showApp(username) {
-        try {
-          console.log('showApp called for:', username);
-          currentUser = username;
-          localStorage.setItem('kin_user', username);
-
-          const authSec = document.getElementById('authSection');
-          const appSec = document.getElementById('appSection');
-
-          // クラス操作だけでなく、直接スタイルを書き換えて確実に表示・非表示を切り替える
-          if (authSec) {
-            authSec.classList.add('hidden');
-            authSec.style.display = 'none'; // 強制非表示
-            console.log('authSection hidden');
+            // 4. Get Workout Summary
+            const workoutRes = await fetch(`/api/workout/today-summary?user_id=${encodeURIComponent(currentUser)}&date=${today}`);
+            if (workoutRes.ok) {
+              const workoutData = await workoutRes.json();
+              setWorkoutSummary(workoutData);
+            }
+          } catch (e) {
+            console.error("Fetch error:", e);
           }
+        };
+        fetchData();
+      }, [currentUser, today, settingsVersion]);
 
-          if (appSec) {
-            appSec.classList.remove('hidden');
-            appSec.style.display = 'flex'; // 強制表示
-            console.log('appSection shown');
-          }
 
-          document.getElementById('currentUserDisplay').textContent = username;
-
-          // 今日の日付をセット
-          const dateEl = document.getElementById('date');
-          if (dateEl) dateEl.valueAsDate = new Date();
-
-          // ユーザー情報（目標値含む）を取得
-          loadUserInfo();
-
-          loadExercises();
-          loadMemos();
-          switchPage('record'); // デフォルトは記録ページ
-
-        } catch (e) {
-          console.error("Critical Error in showApp:", e);
-          alert("アプリの表示中にエラーが発生しました: " + e.message);
-        }
-      }
-
-      function showAuth() {
-        currentUser = null;
-        localStorage.removeItem('kin_user');
-        document.getElementById('authSection').classList.remove('hidden');
-        document.getElementById('appSection').classList.add('hidden');
-      }
-
-      function logout() {
-        if (confirm('ログアウトしますか？')) {
-          showAuth();
-        }
-      }
-
-      // --- ページ切り替え ---
-      // --- ページ切り替え ---
-      function switchPage(pageId) {
-        // 全てのページコンテンツを隠す
-        document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
-
-        // 対象のページを表示
-        const targetPageId = 'page' + pageId.charAt(0).toUpperCase() + pageId.slice(1);
-        const targetPage = document.getElementById(targetPageId);
-        if (targetPage) {
-          targetPage.classList.remove('hidden');
-          targetPage.classList.add('fade-in');
-        }
-
-        // PCメニューの活性化
-        document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
-        const pcMenuItem = Array.from(document.querySelectorAll('.menu-item')).find(m => m.getAttribute('onclick')?.includes(`'${pageId}'`));
-        if (pcMenuItem) pcMenuItem.classList.add('active');
-
-        // モバイルメニューの活性化
-        document.querySelectorAll('.mobile-nav-item').forEach(m => m.classList.remove('active'));
-        const mobNavId = 'm-nav-' + pageId;
-        if (document.getElementById(mobNavId)) {
-          document.getElementById(mobNavId).classList.add('active');
-        }
-
-        // ページごとのデータ読み込み
-        if (pageId === 'history') loadMemos();
-        if (pageId === 'meals') {
-          const d = new Date();
-          const mealDateInput = document.getElementById('mealDate');
-          if (mealDateInput && !mealDateInput.value) mealDateInput.valueAsDate = d;
-          loadMeals();
-        }
-        if (pageId === 'weight') {
-          const weightDateInput = document.getElementById('weightDate');
-          if (weightDateInput) weightDateInput.valueAsDate = new Date();
-          loadWeightHistory();
-        }
-        if (pageId === 'friends') loadFriends();
-        if (pageId === 'settings') {
-          loadSettings();
-          loadExerciseList();
-        }
-      }
-
-      function updateFilterUI() {
-        const filterInput = document.querySelector('input[name="viewFilter"]:checked');
-        if (!filterInput) return;
-        const filter = filterInput.value;
-        const mineLabel = document.getElementById('filterMineLabel');
-        const friendsLabel = document.getElementById('filterFriendsLabel');
-        const allLabel = document.getElementById('filterAllLabel');
-
-        if (mineLabel) mineLabel.classList.remove('active');
-        if (friendsLabel) friendsLabel.classList.remove('active');
-        if (allLabel) allLabel.classList.remove('active');
-
-        if (filter === 'mine' && mineLabel) mineLabel.classList.add('active');
-        else if (filter === 'friends' && friendsLabel) friendsLabel.classList.add('active');
-        else if (allLabel) allLabel.classList.add('active');
-
-        loadMemos();
-      }
-
-      // --- API連携: 種目管理 ---
-      async function loadExercises() {
-        const res = await fetch(`${apiBase}/exercises`);
-        allExercises = await res.json();
-        renderExerciseSelect();
-        renderExerciseList();
-      }
-
-      function renderExerciseSelect() {
-        const select = document.getElementById('exerciseSelect');
-        // 既存の選択肢をクリア（"custom"などは残さないといけないが再構築する）
-
-        allExercises.forEach(ex => {
-          const opt = document.createElement('option');
-          opt.value = ex.name;
-          opt.textContent = ex.name;
-          select.appendChild(opt);
+      // Calculate Totals & Score
+      const totals = useMemo(() => {
+        const t = { cal: 0, p: 0, f: 0, c: 0, salt: 0, fiber: 0 };
+        meals.forEach(m => {
+          t.cal += m.calories;
+          t.p += m.protein;
+          t.f += m.fat;
+          t.c += m.carbs;
+          t.salt += (m.salt || 0);
+          t.fiber += (m.fiber || 0);
         });
+        return t;
+      }, [meals]);
 
-        // その他を追加
-        const customOpt = document.createElement('option');
-        customOpt.value = 'custom';
-        customOpt.textContent = 'その他 (手入力)';
-        select.appendChild(customOpt);
-      }
+      // Update Chart & Advice
+      useEffect(() => {
+        // Score Calc
+        const pRate = (totals.p / targets.p) * 100;
+        const fRate = (totals.f / targets.f) * 100;
+        const cRate = (totals.c / targets.c) * 100;
+        const diff = (Math.abs(100 - pRate) + Math.abs(100 - fRate) + Math.abs(100 - cRate)) / 3;
+        let s = Math.max(0, 100 - diff);
+        if (totals.cal === 0) s = 0;
+        setScore(Math.floor(s));
 
-      function renderExerciseList() {
-        const list = document.getElementById('exerciseList');
-        list.innerHTML = '';
-        allExercises.forEach(ex => {
-          const li = document.createElement('li');
-          li.style.display = 'flex';
-          li.style.justifyContent = 'space-between';
-          li.style.padding = '8px';
-          li.style.borderBottom = '1px solid #eee';
-
-          li.innerHTML = `
-            <span>${ex.name}</span>
-            <button class="danger" onclick="deleteExercise(${ex.id})" style="padding: 2px 8px; font-size: 12px;">削除</button>
-          `;
-          list.appendChild(li);
-        })
-      }
-
-      async function addExercise() {
-        const name = document.getElementById('newExerciseName').value;
-        if (!name) return;
-
-        const res = await fetch(`${apiBase}/exercises`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name })
-        });
-
-        if (res.ok) {
-          document.getElementById('newExerciseName').value = '';
-          loadExercises(); // リロードして反映
-        } else {
-          const err = await res.json();
-          alert('追加失敗: ' + err.detail);
-        }
-      }
-
-      async function deleteExercise(id) {
-        if (!confirm('この種目を削除しますか？（過去の記録は消えませんが、選択肢からなくなります）')) return;
-
-        await fetch(`${apiBase}/exercises/${id}`, { method: 'DELETE' })
-          .then(res => {
-            if (res.ok) {
-              loadExercises();
-            } else {
-              alert('削除失敗');
+        // Chart
+        if (canvasRef.current) {
+          if (chartRef.current) chartRef.current.destroy();
+          chartRef.current = new Chart(canvasRef.current, {
+            type: 'radar',
+            data: {
+              labels: ['Protein', 'Fat', 'Carbs'],
+              datasets: [{
+                label: 'Achievement (%)',
+                data: [pRate, fRate, cRate],
+                backgroundColor: 'rgba(175, 252, 65, 0.2)',
+                borderColor: '#affc41',
+                pointBackgroundColor: '#affc41',
+                borderWidth: 2
+              }]
+            },
+            options: {
+              scales: {
+                r: {
+                  angleLines: { color: 'rgba(255,255,255,0.1)' },
+                  grid: { color: 'rgba(255,255,255,0.1)' },
+                  pointLabels: { color: '#ccc', font: { size: 10 } },
+                  suggestedMin: 0,
+                  suggestedMax: 100,
+                  ticks: { display: false }
+                }
+              },
+              plugins: { legend: { display: false } },
+              maintainAspectRatio: false
             }
           });
-      }
-
-
-      // --- API連携: 認証 ---
-
-      document.getElementById('registerForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('regUsername').value;
-        const password = document.getElementById('regPassword').value;
-        const errDisplay = document.getElementById('regError');
-
-        // リセット
-        errDisplay.style.display = 'none';
-        errDisplay.textContent = '';
-
-        const res = await fetch(`${apiBase}/register`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-
-        if (res.ok) {
-          alert("登録成功！ログインしてください。");
-          showAuthTab('login');
-          document.getElementById('loginUsername').value = username;
-          document.getElementById('registerForm').reset();
-        } else {
-          const result = await res.json();
-          // エラー表示
-          errDisplay.textContent = result.detail;
-          errDisplay.style.display = 'block';
         }
+      }, [totals, targets]);
+
+      const getBalanceStatus = (current, target) => {
+        const ratio = (current / target) * 100;
+        if (ratio < 80) return { label: 'Low', color: 'text-yellow-400' };
+        if (ratio > 120) return { label: 'High', color: 'text-alert' };
+        return { label: 'Good', color: 'text-neon' };
+      };
+
+      return (
+        <div className="p-4 space-y-6 max-w-md mx-auto animate-fade-in pb-24">
+          <header className="flex justify-between items-center mb-2">
+            <div>
+              <h1 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neon to-emerald-400">
+                Today's Summary
+              </h1>
+              <input
+                type="date"
+                value={today}
+                onChange={(e) => setToday(e.target.value)}
+                className="bg-transparent text-gray-400 text-xs border-none outline-none"
+              />
+            </div>
+            <div className="flex items-center space-x-3">
+              <button onClick={() => setShowNotifs(true)} className="relative p-2 rounded-full bg-glass border border-white/10">
+                <span className="material-symbols-outlined text-white text-xl">notifications</span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-0 right-0 w-3 h-3 bg-alert rounded-full border border-black"></span>
+                )}
+              </button>
+              <div className="w-10 h-10 rounded-full bg-glass flex items-center justify-center border border-white/10">
+                <span className="material-symbols-outlined text-neon">account_circle</span>
+              </div>
+            </div>
+          </header>
+
+          {/* Score Card */}
+          <div className="glass-card p-6 relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-neon/10 rounded-full blur-2xl -mr-10 -mt-10 transition-all duration-700 group-hover:bg-neon/20"></div>
+            <div className="relative z-10 flex justify-between items-end">
+              <div>
+                <p className="text-gray-400 text-sm font-medium mb-1">Nutrition Score</p>
+                <div className="text-5xl font-black text-white tracking-tighter">
+                  {score}<span className="text-xl text-gray-500 font-normal ml-1">pts</span>
+                </div>
+              </div>
+              <div className="w-24 h-24 absolute right-0 bottom-[-10px]">
+                <canvas ref={canvasRef}></canvas>
+              </div>
+            </div>
+          </div>
+
+          {/* Calorie Bar */}
+          <div className="glass-card p-5 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-300">Calories</span>
+              <span className="text-neon font-bold">{totals.cal} / {targets.cal}</span>
+            </div>
+            <div className="h-2 bg-gray-800 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-neon shadow-[0_0_10px_rgba(175,252,65,0.5)] transition-all duration-1000"
+                style={{ width: `${Math.min((totals.cal / targets.cal) * 100, 100)}%` }}
+              ></div>
+            </div>
+          </div>
+
+          {/* Balance Table */}
+          {totals.cal > 0 && (
+            <div className="glass-card p-4 overflow-hidden">
+              <h3 className="text-sm text-gray-400 mb-3 border-b border-white/10 pb-2">Nutritional Balance</h3>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-gray-500 text-xs">
+                    <th className="text-left pb-2">Nutrient</th>
+                    <th className="text-right pb-2">Target</th>
+                    <th className="text-right pb-2">Actual</th>
+                    <th className="text-right pb-2">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {[
+                    { l: 'Protein', t: targets.p, a: totals.p, u: 'g' },
+                    { l: 'Fat', t: targets.f, a: totals.f, u: 'g' },
+                    { l: 'Carbs', t: targets.c, a: totals.c, u: 'g' },
+                    { l: 'Salt', t: targets.salt, a: totals.salt, u: 'g' },
+                    { l: 'Fiber', t: targets.fiber, a: totals.fiber, u: 'g' },
+                  ].map((row, i) => {
+                    const stat = getBalanceStatus(row.a, row.t);
+                    return (
+                      <tr key={i}>
+                        <td className="py-2 text-gray-300">{row.l}</td>
+                        <td className="py-2 text-right text-gray-500">{row.t}</td>
+                        <td className="py-2 text-right font-medium">{row.a.toFixed(1)}</td>
+                        <td className={`py-2 text-right font-bold ${stat.color}`}>{stat.label}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Workout Summary */}
+          {workoutSummary && workoutSummary.highlight && (
+            <div className="space-y-3">
+              <h3 className="text-sm text-gray-400 pl-1 flex items-center">
+                <span className="material-symbols-outlined text-neon mr-2 text-base">fitness_center</span>
+                Today's Workout
+              </h3>
+
+              {/* Highlight */}
+              <div className="glass-card p-5 relative overflow-hidden group border-l-4 border-l-neon">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-neon/10 rounded-full blur-3xl -mr-16 -mt-16"></div>
+                <div className="relative z-10">
+                  <div className="flex justify-between items-start mb-3">
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">🏆 Best Lift Today</p>
+                      <h4 className="text-xl font-bold text-white">{workoutSummary.highlight.exercise_name}</h4>
+                    </div>
+                    {workoutSummary.highlight.previous_comparison && (
+                      <span className={`text-xs px-2 py-1 rounded border ${workoutSummary.highlight.previous_comparison.startsWith('+')
+                        ? 'text-neon border-neon/30 bg-neon/10'
+                        : 'text-gray-400 border-gray-600'
+                        }`}>
+                        {workoutSummary.highlight.previous_comparison}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-end gap-4">
+                    <div>
+                      <p className="text-xs text-gray-500">Best Set</p>
+                      <p className="text-lg font-bold text-white">
+                        {workoutSummary.highlight.best_set.weight}kg × {workoutSummary.highlight.best_set.reps}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-500">Est. 1RM</p>
+                      <p className="text-2xl font-black text-neon">{workoutSummary.highlight.best_set.estimated_1rm.toFixed(1)}kg</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Total Volume */}
+              {workoutSummary.total_volume > 0 && (
+                <div className="glass-card p-4 flex justify-between items-center">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Total Volume</p>
+                    <p className="text-2xl font-bold text-white">{workoutSummary.total_volume.toFixed(0)}kg</p>
+                  </div>
+                  {workoutSummary.total_volume_change !== null && (
+                    <div className={`text-right ${workoutSummary.total_volume_change > 0 ? 'text-neon' : 'text-gray-400'
+                      }`}>
+                      <p className="text-xs text-gray-500">vs. Last</p>
+                      <p className="text-lg font-bold">
+                        {workoutSummary.total_volume_change > 0 ? '+' : ''}
+                        {workoutSummary.total_volume_change}%
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Exercise Cards */}
+              {workoutSummary.workouts && workoutSummary.workouts.length > 1 && (
+                <div className="grid grid-cols-2 gap-2">
+                  {workoutSummary.workouts.slice(0, 4).map((w, idx) => (
+                    <div key={idx} className="glass-card p-3">
+                      <div className="flex items-start justify-between mb-1">
+                        <p className="text-xs font-bold text-white truncate pr-1">{w.exercise_name}</p>
+                        {w.exercise_memo && <span className="text-xs">📝</span>}
+                      </div>
+                      <p className="text-xs text-gray-400">{w.best_set.weight}kg × {w.best_set.reps}</p>
+                      <div className="flex justify-between items-center mt-1">
+                        <span className="text-xs text-neon">1RM: {w.best_set.estimated_1rm.toFixed(1)}kg</span>
+                        {w.previous_comparison && (
+                          <span className={`text-[10px] ${w.previous_comparison.startsWith('+') ? 'text-neon' : 'text-gray-500'
+                            }`}>
+                            {w.previous_comparison}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Meal List Mockup (To be implemented later properly) */}
+          <div className="space-y-3">
+            <h3 className="text-sm text-gray-400 pl-1">Meals</h3>
+            {meals.map(m => (
+              <div key={m.id} className="glass-card p-4 flex justify-between items-center">
+                <div>
+                  <span className="text-xs text-neon border border-neon/30 px-2 py-0.5 rounded mr-2">{m.meal_type}</span>
+                  <span className="font-bold text-sm">{m.food_name}</span>
+                  <div className="text-xs text-gray-400 mt-1">
+                    {m.calories}kcal (P:{m.protein} F:{m.fat} C:{m.carbs})
+                  </div>
+                </div>
+                <button className="text-gray-500 hover:text-alert">
+                  <span className="material-symbols-outlined text-sm">delete</span>
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // 3. Record View
+    const Record = () => {
+      const { currentUser } = React.useContext(UserContext);
+      const [input, setInput] = useState('');
+      const [loading, setLoading] = useState(false);
+      const [estimation, setEstimation] = useState(null);
+      const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+      const [mealType, setMealType] = useState('Dinner');
+
+      // Form State for Nutrients
+      const [form, setForm] = useState({
+        name: '', cal: '', p: '', f: '', c: '', salt: '', fiber: ''
       });
 
-      document.getElementById('loginForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('loginUsername').value;
-        const password = document.getElementById('loginPassword').value;
-        const errDisplay = document.getElementById('loginError');
-
-        // リセット
-        errDisplay.style.display = 'none';
-        errDisplay.textContent = 'ログイン処理中...';
-        errDisplay.style.color = 'black';
-        errDisplay.style.display = 'block';
-
+      // AI Estimate
+      const handleAnalyze = async () => {
+        if (!input) return;
+        setLoading(true);
+        setEstimation(null); // Reset previous
         try {
-          // 簡易的なログインAPI呼び出し
-          const res = await fetch(`${apiBase}/login`, {
+          const res = await fetch('/api/estimate_nutrition', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ text: input })
           });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.detail || "Estimation Failed");
 
-          if (res.ok) {
-            errDisplay.textContent = 'ログイン成功！画面を切り替えます...';
-            console.log('Login successful for:', username);
-            setTimeout(() => {
-              showApp(username);
-              document.getElementById('loginForm').reset();
-            }, 500);
-          } else {
-            const result = await res.json();
-            errDisplay.style.color = 'var(--danger)';
-            // エラー表示 (ステータスコードによってメッセージを変えるなど)
-            if (res.status === 400 || res.status === 401) {
-              errDisplay.textContent = result.detail || "ユーザー名またはパスワードが正しくありません";
-            } else {
-              errDisplay.textContent = "予期しないエラーが発生しました Status:" + res.status;
-            }
-          }
-        } catch (error) {
-          console.error(error);
-          errDisplay.style.color = 'var(--danger)';
-          errDisplay.textContent = "通信エラーが発生しました: " + error.message;
+          // Populate Form
+          setForm({
+            name: data.food_name || input,
+            cal: data.calories || 0,
+            p: data.protein || 0,
+            f: data.fat || 0,
+            c: data.carbs || 0,
+            salt: data.salt || 0,
+            fiber: data.fiber || 0
+          });
+          setEstimation(data);
+        } catch (e) {
+          alert("Error: " + e.message);
+        } finally {
+          setLoading(false);
         }
-      });
+      };
 
-      function checkExerciseCustom() {
-        const select = document.getElementById('exerciseSelect');
-        const customInput = document.getElementById('exerciseCustom');
-
-        if (select.value === 'custom') {
-          customInput.classList.remove('hidden');
-          customInput.required = true;
-          customInput.focus();
-        } else {
-          customInput.classList.add('hidden');
-          customInput.required = false;
-        }
-      }
-
-      function getSelectedExercise() {
-        const select = document.getElementById('exerciseSelect');
-        if (select.value === 'custom') {
-          return document.getElementById('exerciseCustom').value;
-        }
-        return select.value;
-      }
-
-      // --- API連携: メモ機能 ---
-
-      document.getElementById('memoForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const exerciseName = getSelectedExercise();
-        if (!exerciseName) {
-          alert("種目を選択または入力してください");
-          return;
-        }
-
-        const data = {
+      // Save Meal
+      const handleSave = async () => {
+        const body = {
           user_id: currentUser,
-          date: document.getElementById('date').value,
-          exercise: exerciseName,
-          weight: parseFloat(document.getElementById('weight').value),
-          reps: parseInt(document.getElementById('reps').value),
-          note: document.getElementById('note').value,
+          date: date,
+          meal_type: mealType,
+          food_name: form.name,
+          calories: parseInt(form.cal) || 0,
+          protein: parseFloat(form.p) || 0,
+          fat: parseFloat(form.f) || 0,
+          carbs: parseFloat(form.c) || 0,
+          salt: parseFloat(form.salt) || 0,
+          fiber: parseFloat(form.fiber) || 0
         };
 
-        let url = `${apiBase}/memo`;
-        let method = 'POST';
-
-        if (editingId !== null) {
-          url = `${apiBase}/memo/${editingId}`;
-          method = 'PUT';
-        }
-
-        const res = await fetch(url, {
-          method: method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
-        });
-
-        if (res.ok) {
-          alert(method === 'POST' ? '保存しました！' : '更新しました！');
-          resetForm();
-          loadMemos();
-        } else {
-          alert('エラーが発生しました');
-        }
-      });
-
-      async function loadMemos() {
-        // フィルタリング設定を確認
-        const filter = document.querySelector('input[name="viewFilter"]:checked').value;
-
-        // V2 APIを使用
-        let url = `${apiBase}/memo_v2?viewer_id=${encodeURIComponent(currentUser)}&filter_mode=${filter}`;
-        const res = await fetch(url);
-        const memos = await res.json();
-        renderList(memos);
-      }
-
-      async function searchMemos() {
-        const exercise = document.getElementById('searchExercise').value;
-        const filter = document.querySelector('input[name="viewFilter"]:checked').value;
-
-        let url = `${apiBase}/memo_v2?viewer_id=${encodeURIComponent(currentUser)}&filter_mode=${filter}&exercise=${encodeURIComponent(exercise)}`;
-        const res = await fetch(url);
-        const memos = await res.json();
-        renderList(memos);
-      }
-
-      function renderList(memos) {
-        const list = document.getElementById('memoList');
-        list.innerHTML = '';
-
-        // 新しい順に
-        memos.slice().reverse().forEach((m) => {
-          const isMine = (m.user_id === currentUser);
-          const li = document.createElement('li');
-
-          // 他人の記録ならユーザー名を表示、自分なら編集ボタンなど
-          let userBadge = '';
-          if (!isMine) {
-            userBadge = `<span style="font-size: 12px; background: #e5e7eb; padding: 2px 6px; border-radius: 4px; margin-right: 6px;">👤 ${m.user_id}</span>`;
-          }
-
-          let actionButtons = '';
-          if (isMine) {
-            actionButtons = `
-            <button class="edit" onclick="editMemo(${m.id})">編集</button>
-            <button class="danger" onclick="deleteMemo(${m.id})">削除</button>
-            `;
-          }
-
-          li.innerHTML = `
-        <div class="memo-content">
-          <div class="memo-meta">${userBadge}${m.date}</div>
-          <div class="memo-main">${m.exercise} ${m.weight}kg × ${m.reps}回</div>
-          <div class="memo-note">${m.note}</div>
-        </div>
-        <div class="memo-actions">
-          ${actionButtons}
-        </div>
-      `;
-          list.appendChild(li);
-        });
-      }
-
-      function editMemo(id) {
-        fetch(`${apiBase}/memo?id=${id}`)
-          .then(res => res.json())
-          .then(memos => {
-            const m = memos[0];
-            if (m) {
-              document.getElementById('date').value = m.date;
-              // 編集時は日付が見えたほうが親切なので表示する
-              document.getElementById('date').classList.remove('hidden');
-
-              // 種目のセット（リストにあるか確認）
-              const select = document.getElementById('exerciseSelect');
-              const customInput = document.getElementById('exerciseCustom');
-              const options = Array.from(select.options).map(o => o.value);
-
-              if (options.includes(m.exercise)) {
-                select.value = m.exercise;
-                customInput.classList.add('hidden');
-              } else {
-                select.value = 'custom';
-                customInput.value = m.exercise;
-                customInput.classList.remove('hidden');
-              }
-
-              document.getElementById('weight').value = m.weight;
-              document.getElementById('reps').value = m.reps;
-              document.getElementById('note').value = m.note;
-
-              editingId = id;
-              document.getElementById('submitBtn').textContent = "更新する";
-              document.getElementById('cancelEditBtn').classList.remove('hidden');
-
-              // 記録ページへ移動
-              switchPage('record');
-
-              // フォームまでスクロール
-              document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
-            }
+        try {
+          const res = await fetch('/meals', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
           });
-      }
-
-      function deleteMemo(id) {
-        if (confirm("本当に削除しますか？")) {
-          fetch(`${apiBase}/memo/${id}`, { method: 'DELETE' })
-            .then(res => res.json())
-            .then(() => {
-              loadMemos();
-            });
+          if (res.ok) {
+            alert("Meal Saved!");
+            setInput('');
+            setEstimation(null);
+            setForm({ name: '', cal: '', p: '', f: '', c: '', salt: '', fiber: '' });
+          } else {
+            alert("Error saving meal");
+          }
+        } catch (e) {
+          console.error(e);
         }
-      }
+      };
 
-      function cancelEdit() {
-        resetForm();
-      }
+      // Helpers for Input Change
+      const handleChange = (f, val) => setForm(prev => ({ ...prev, [f]: val }));
 
-      function resetForm() {
-        editingId = null;
-        document.getElementById('submitBtn').textContent = "保存する";
-        document.getElementById('cancelEditBtn').classList.add('hidden');
+      return (
+        <div className="p-4 max-w-md mx-auto animate-fade-in pb-24">
+          <header className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neon to-emerald-400">Record Meal</h2>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="bg-glass text-white text-xs px-2 py-1 rounded border border-white/10 outline-none"
+            />
+          </header>
 
-        // 日付は今日に戻して隠す
-        document.getElementById('memoForm').reset();
-        document.getElementById('date').valueAsDate = new Date();
-        document.getElementById('date').classList.add('hidden');
+          {/* Input Area */}
+          <div className="glass-card p-1 mb-6 relative group focus-within:ring-1 ring-neon/50 transition-all">
+            <div className="absolute top-2 right-2 z-10">
+              <select
+                value={mealType}
+                onChange={(e) => setMealType(e.target.value)}
+                className="bg-black/50 text-white text-xs px-2 py-1 rounded outline-none border border-white/20"
+              >
+                <option>Breakfast</option>
+                <option>Lunch</option>
+                <option>Dinner</option>
+                <option>Snack</option>
+              </select>
+            </div>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Describe your meal... (e.g. 'Beef bowl with egg')"
+              className="w-full bg-transparent text-white p-4 pt-10 h-32 outline-none resize-none placeholder-gray-600 text-base"
+            ></textarea>
+            <button
+              onClick={handleAnalyze}
+              disabled={loading || !input}
+              className="absolute bottom-3 right-3 bg-neon text-black font-bold py-2 px-4 rounded-full flex items-center shadow-lg hover:shadow-neon/50 transition-all disabled:opacity-50 disabled:cursor-not-allowed hover:scale-105 active:scale-95"
+            >
+              {loading ? (
+                <span className="material-symbols-outlined animate-spin text-sm">progress_activity</span>
+              ) : (
+                <>
+                  <span className="material-symbols-outlined text-sm mr-1">auto_awesome</span>
+                  Analyze
+                </>
+              )}
+            </button>
+          </div>
 
-        // 種目選択もリセット
-        document.getElementById('exerciseCustom').classList.add('hidden');
-      }
+          {/* Estimation Result Form */}
+          {(estimation || form.name) && (
+            <div className="glass-card p-5 animate-fade-in border-t-2 border-neon">
+              <div className="flex justify-between items-start mb-4">
+                <h3 className="font-bold text-lg flex items-center">
+                  <span className="material-symbols-outlined mr-2 text-neon">restaurant</span>
+                  Nutrition Facts
+                </h3>
+                {estimation && <span className="text-[10px] text-gray-400 border border-gray-700 px-2 py-1 rounded bg-black/30">AI Source: {estimation.source}</span>}
+              </div>
 
+              <div className="space-y-3">
+                <div>
+                  <label className="text-xs text-gray-500 block mb-1">Food Name</label>
+                  <input
+                    type="text"
+                    value={form.name}
+                    onChange={(e) => handleChange('name', e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none transition-colors"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { l: 'Calories (kcal)', f: 'cal' },
+                    { l: 'Protein (g)', f: 'p' },
+                    { l: 'Fat (g)', f: 'f' },
+                    { l: 'Carbs (g)', f: 'c' },
+                    { l: 'Salt (g)', f: 'salt' },
+                    { l: 'Fiber (g)', f: 'fiber' },
+                  ].map((field) => (
+                    <div key={field.f}>
+                      <label className="text-xs text-gray-500 block mb-1">{field.l}</label>
+                      <input
+                        type="number"
+                        value={form[field.f]}
+                        onChange={(e) => handleChange(field.f, e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none transition-colors"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
-      // --- フレンド・設定機能 ---
+              {/* AI Advice */}
+              {estimation && estimation.advice && (
+                <div className="mt-4 p-3 bg-neon/5 border-l-2 border-neon text-xs text-gray-300 rounded-r">
+                  <p className="font-bold text-neon mb-1">💡 Dietitian's Advice</p>
+                  {estimation.advice}
+                </div>
+              )}
 
-      async function searchUsers() {
-        const q = document.getElementById('userSearchInput').value;
-        if (!q) return;
-        const res = await fetch(`${apiBase}/users/search?q=${encodeURIComponent(q)}`);
-        const users = await res.json();
-        const ul = document.getElementById('useruSearchResults');
-        ul.innerHTML = '';
-        users.forEach(u => {
-          if (u === currentUser) return; // 自分は表示しない
-          const li = document.createElement('li');
-          li.style.padding = '8px';
-          li.style.borderBottom = '1px solid var(--border)';
-          li.style.display = 'flex';
-          li.style.justifyContent = 'space-between';
-          li.innerHTML = `
-                <span>${u}</span>
-                <button onclick="addFriend('${u}')" class="edit" style="width:auto; font-size:12px;">フォロー</button>
-            `;
-          ul.appendChild(li);
+              <button
+                onClick={handleSave}
+                className="w-full mt-6 bg-gradient-to-r from-neon to-emerald-400 text-black font-bold py-3 rounded-xl shadow-lg hover:shadow-neon/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+              >
+                Save Meal
+              </button>
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // 4. Workout View (Record, History, Progress, Coach)
+    const Workout = () => {
+      const { currentUser } = React.useContext(UserContext);
+      const [activeTab, setActiveTab] = useState('record');
+
+      // Record State
+      const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+      const [session, setSession] = useState(null);
+      const [exercises, setExercises] = useState([]);
+      const [sessionMemo, setSessionMemo] = useState('');
+      const [exerciseName, setExerciseName] = useState('');
+      const [exerciseMemo, setExerciseMemo] = useState('');
+      const [sets, setSets] = useState([{ weight: '', reps: '' }]);
+      const [showAddExercise, setShowAddExercise] = useState(false);
+
+      // History State
+      const [history, setHistory] = useState([]);
+      const [bodyPartFilter, setBodyPartFilter] = useState('All');
+      const [historySearch, setHistorySearch] = useState('');
+      const [historyLimit, setHistoryLimit] = useState(20);
+
+      // Progress State
+      const [exerciseList, setExerciseList] = useState([]);
+      const [selectedExercise, setSelectedExercise] = useState('');
+      const [progressData, setProgressData] = useState([]);
+      const progressChartRef = useRef(null);
+      const progressCanvasRef = useRef(null);
+
+      // Coach State
+      const [coachLoading, setCoachLoading] = useState(false);
+      const [coachResult, setCoachResult] = useState(null);
+      const [coachExercise, setCoachExercise] = useState('');
+
+      // Achievements State
+      const [achievements, setAchievements] = useState(null);
+
+      // Load session for today
+      useEffect(() => {
+        if (activeTab !== 'record') return;
+        const loadSession = async () => {
+          try {
+            const res = await fetch(`/api/workout/sessions?user_id=${encodeURIComponent(currentUser)}&date=${date}`);
+            if (res.ok) {
+              const sessions = await res.json();
+              if (sessions.length > 0) {
+                setSession(sessions[0]);
+                setSessionMemo(sessions[0].session_memo || '');
+                const detailRes = await fetch(`/api/workout/sessions/${sessions[0].id}`);
+                if (detailRes.ok) { const detail = await detailRes.json(); setExercises(detail.exercises || []); }
+              } else { setSession(null); setExercises([]); setSessionMemo(''); }
+            }
+          } catch (e) { console.error("Load session error:", e); }
+        };
+        loadSession();
+      }, [currentUser, date, activeTab]);
+
+      // Load History
+      useEffect(() => {
+        if (activeTab !== 'history') return;
+        const loadHistory = async () => {
+          try {
+            const url = new URL('/api/workout/history', window.location.origin);
+            url.searchParams.append('user_id', currentUser);
+            if (bodyPartFilter !== 'All') url.searchParams.append('body_part', bodyPartFilter);
+            if (historySearch) url.searchParams.append('exercise_name', historySearch);
+            url.searchParams.append('limit', historyLimit);
+            const res = await fetch(url);
+            if (res.ok) setHistory(await res.json());
+          } catch (e) { console.error("Load history error:", e); }
+        };
+        const timer = setTimeout(loadHistory, 300);
+        return () => clearTimeout(timer);
+      }, [currentUser, activeTab, bodyPartFilter, historySearch, historyLimit]);
+
+      // Load exercise list for Progress
+      useEffect(() => {
+        if (activeTab !== 'progress') return;
+        const loadExercises = async () => {
+          try {
+            const res = await fetch(`/api/workout/progress?user_id=${encodeURIComponent(currentUser)}`);
+            if (res.ok) {
+              const data = await res.json();
+              setExerciseList(data.exercises || []);
+              if (data.exercises?.length > 0 && !selectedExercise) setSelectedExercise(data.exercises[0].name);
+            }
+          } catch (e) { console.error(e); }
+        };
+        loadExercises();
+      }, [currentUser, activeTab]);
+
+      // Load progress data for selected exercise
+      useEffect(() => {
+        if (activeTab !== 'progress' || !selectedExercise) return;
+        const loadProgress = async () => {
+          try {
+            const res = await fetch(`/api/workout/progress?user_id=${encodeURIComponent(currentUser)}&exercise_name=${encodeURIComponent(selectedExercise)}`);
+            if (res.ok) { const data = await res.json(); setProgressData(data.data || []); }
+          } catch (e) { console.error(e); }
+        };
+        loadProgress();
+      }, [currentUser, activeTab, selectedExercise]);
+
+      // Render progress chart
+      useEffect(() => {
+        if (!progressCanvasRef.current || progressData.length === 0) return;
+        if (progressChartRef.current) progressChartRef.current.destroy();
+        progressChartRef.current = new Chart(progressCanvasRef.current, {
+          type: 'line',
+          data: {
+            labels: progressData.map(d => d.date),
+            datasets: [{
+              label: 'Est. 1RM (kg)',
+              data: progressData.map(d => d.estimated_1rm),
+              borderColor: '#affc41',
+              backgroundColor: 'rgba(175, 252, 65, 0.1)',
+              fill: true, tension: 0.4, pointRadius: 5,
+              pointBackgroundColor: '#affc41', pointBorderColor: '#000', pointBorderWidth: 2,
+            }]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(0,0,0,0.8)', titleColor: '#affc41', bodyColor: '#fff' } },
+            scales: {
+              x: { ticks: { color: '#666', maxRotation: 45, font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.05)' } },
+              y: { ticks: { color: '#666', callback: v => v + 'kg' }, grid: { color: 'rgba(255,255,255,0.05)' } }
+            }
+          }
         });
-      }
+      }, [progressData]);
 
-      async function addFriend(username) {
-        const res = await fetch(`${apiBase}/friends?current_user=${encodeURIComponent(currentUser)}`, {
+      // Load achievements
+      useEffect(() => {
+        if (activeTab !== 'record') return;
+        const loadAchievements = async () => {
+          try {
+            const res = await fetch(`/api/achievements?user_id=${encodeURIComponent(currentUser)}`);
+            if (res.ok) setAchievements(await res.json());
+          } catch (e) { console.error(e); }
+        };
+        loadAchievements();
+      }, [currentUser, activeTab]);
+
+      // Session & Exercise handlers
+      const createSession = async () => {
+        try {
+          const res = await fetch('/api/workout/sessions', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: currentUser, date, session_memo: sessionMemo })
+          });
+          if (res.ok) { const data = await res.json(); setSession(data); setShowAddExercise(true); }
+          else { const err = await res.text(); alert('Error: ' + err); }
+        } catch (e) { alert('Error: ' + e.message); }
+      };
+
+      const handleAddExercise = async () => {
+        if (!exerciseName || !session) return;
+        try {
+          const exRes = await fetch('/api/workout/exercises', {
+            method: 'POST', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ session_id: session.id || session.session_id, exercise_name: exerciseName, exercise_memo: exerciseMemo, sort_order: exercises.length })
+          });
+          if (!exRes.ok) throw new Error('Failed');
+          const exData = await exRes.json();
+          for (let i = 0; i < sets.length; i++) {
+            const s = sets[i];
+            if (s.weight && s.reps) {
+              await fetch('/api/workout/sets', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ workout_exercise_id: exData.exercise_id, set_number: i + 1, weight: parseFloat(s.weight), reps: parseInt(s.reps) })
+              });
+            }
+          }
+          const detailRes = await fetch(`/api/workout/sessions/${session.id || session.session_id}`);
+          if (detailRes.ok) { const detail = await detailRes.json(); setExercises(detail.exercises || []); }
+          setExerciseName(''); setExerciseMemo(''); setSets([{ weight: '', reps: '' }]); setShowAddExercise(false);
+        } catch (e) { alert('Error: ' + e.message); }
+      };
+
+      const updateSet = (idx, field, val) => setSets(prev => prev.map((s, i) => i === idx ? { ...s, [field]: val } : s));
+      const addSet = () => setSets(prev => [...prev, { weight: '', reps: '' }]);
+
+      // AI Coach handler
+      const askCoach = async () => {
+        setCoachLoading(true); setCoachResult(null);
+        try {
+          const url = new URL('/api/ai/coach', window.location.origin);
+          url.searchParams.append('user_id', currentUser);
+          if (coachExercise) url.searchParams.append('exercise_name', coachExercise);
+          const res = await fetch(url, { method: 'POST' });
+          if (res.ok) setCoachResult(await res.json());
+          else setCoachResult({ analysis: 'Error', advice: await res.text(), program: [] });
+        } catch (e) { setCoachResult({ analysis: 'Error', advice: e.message, program: [] }); }
+        setCoachLoading(false);
+      };
+
+      const tabs = [
+        { id: 'record', label: 'Record', icon: 'edit_note' },
+        { id: 'history', label: 'History', icon: 'history' },
+        { id: 'progress', label: 'Progress', icon: 'trending_up' },
+        { id: 'coach', label: 'AI Coach', icon: 'psychology' },
+      ];
+
+      return (
+        <div className="p-4 max-w-md mx-auto animate-fade-in pb-24">
+          <header className="mb-4">
+            <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neon to-emerald-400 mb-3">
+              🏋️ Workout
+            </h2>
+            <div className="flex bg-white/10 rounded-xl p-1 gap-0.5">
+              {tabs.map(t => (
+                <button key={t.id}
+                  onClick={() => setActiveTab(t.id)}
+                  className={`flex-1 flex flex-col items-center py-1.5 rounded-lg text-[10px] font-bold transition-all ${activeTab === t.id ? 'bg-neon text-black shadow-lg shadow-neon/20' : 'text-gray-500 hover:text-gray-300'}`}
+                >
+                  <span className="material-symbols-outlined text-base">{t.icon}</span>
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </header>
+
+          {/* Achievements Banner */}
+          {activeTab === 'record' && achievements && achievements.earned.length > 0 && (
+            <div className="glass-card p-3 mb-4 flex items-center gap-3 overflow-x-auto no-scrollbar">
+              <span className="text-xs text-gray-400 whitespace-nowrap">Lv.{achievements.level}</span>
+              <div className="flex gap-1">
+                {achievements.all.filter(a => achievements.earned.includes(a.id)).map(a => (
+                  <span key={a.id} title={a.name + ': ' + a.desc} className="text-xl cursor-help hover:scale-125 transition-transform">{a.icon}</span>
+                ))}
+              </div>
+              <span className="text-[10px] text-purple-400 ml-auto whitespace-nowrap">{achievements.level_name}</span>
+            </div>
+          )}
+
+          {/* ====== RECORD TAB ====== */}
+          {activeTab === 'record' && (
+            <>
+              <div className="flex justify-end mb-4">
+                <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
+                  className="bg-glass text-white text-xs px-2 py-1 rounded border border-white/10 outline-none" />
+              </div>
+              {!session ? (
+                <div className="glass-card p-6 text-center">
+                  <p className="text-gray-400 mb-4">No session for this day</p>
+                  <textarea value={sessionMemo} onChange={(e) => setSessionMemo(e.target.value)}
+                    placeholder="Session memo (optional)..."
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white mb-4 outline-none resize-none h-20" />
+                  <button onClick={createSession}
+                    className="bg-neon text-black font-bold py-3 px-6 rounded-xl hover:scale-105 transition-transform">
+                    Start Workout
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {session.session_memo && (
+                    <div className="glass-card p-3 text-xs text-gray-300 border-l-2 border-neon">📝 {session.session_memo}</div>
+                  )}
+                  {exercises.map(ex => (
+                    <div key={ex.id} className="glass-card p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-bold text-lg">{ex.exercise_name}</h3>
+                          {ex.body_part && ex.body_part !== 'Other' && (
+                            <span className="text-[10px] bg-white/10 px-1.5 py-0.5 rounded text-gray-400">{ex.body_part}</span>
+                          )}
+                        </div>
+                        {ex.sets.length > 0 && (
+                          <span className="text-xs text-neon border border-neon/30 px-2 py-0.5 rounded">
+                            Best: {Math.max(...ex.sets.map(s => s.estimated_1rm)).toFixed(1)}kg
+                          </span>
+                        )}
+                      </div>
+                      {ex.exercise_memo && <p className="text-xs text-gray-400 mb-2">{ex.exercise_memo}</p>}
+                      <div className="space-y-1">
+                        {ex.sets.map((s, idx) => (
+                          <div key={s.id} className="flex items-center text-sm bg-white/5 rounded px-3 py-2">
+                            <span className="text-gray-500 w-12">Set {idx + 1}</span>
+                            <span className="flex-1">{s.weight}kg × {s.reps}reps</span>
+                            <span className="text-neon text-xs">1RM: {s.estimated_1rm}kg</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                  {!showAddExercise ? (
+                    <button onClick={() => setShowAddExercise(true)}
+                      className="w-full glass-card p-4 flex items-center justify-center text-neon hover:bg-neon/10 transition-colors">
+                      <span className="material-symbols-outlined mr-2">add_circle</span> Add Exercise
+                    </button>
+                  ) : (
+                    <div className="glass-card p-5 border-t-2 border-neon animate-fade-in">
+                      <h4 className="font-bold mb-4 flex items-center">
+                        <span className="material-symbols-outlined mr-2 text-neon">fitness_center</span> New Exercise
+                      </h4>
+                      <div className="space-y-3">
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Exercise Name</label>
+                          <input type="text" value={exerciseName} onChange={(e) => setExerciseName(e.target.value)}
+                            placeholder="e.g. Bench Press" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none" />
+                        </div>
+                        <div>
+                          <label className="text-xs text-gray-500 block mb-1">Memo (optional)</label>
+                          <input type="text" value={exerciseMemo} onChange={(e) => setExerciseMemo(e.target.value)}
+                            placeholder="e.g. Focus on form" className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none" />
+                        </div>
+                        <div>
+                          <div className="flex justify-between items-center mb-2">
+                            <label className="text-xs text-gray-500">Sets</label>
+                            <button onClick={addSet} className="text-xs text-neon border border-neon/50 px-2 py-0.5 rounded hover:bg-neon/10">+ Add Set</button>
+                          </div>
+                          <div className="space-y-2">
+                            {sets.map((s, idx) => (
+                              <div key={idx} className="flex gap-2">
+                                <span className="text-xs text-gray-500 pt-2 w-10">#{idx + 1}</span>
+                                <input type="number" value={s.weight} onChange={(e) => updateSet(idx, 'weight', e.target.value)}
+                                  placeholder="Weight" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none" />
+                                <input type="number" value={s.reps} onChange={(e) => updateSet(idx, 'reps', e.target.value)}
+                                  placeholder="Reps" className="flex-1 bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pt-2">
+                          <button onClick={() => setShowAddExercise(false)} className="flex-1 bg-gray-700 text-white py-2 rounded-lg hover:bg-gray-600">Cancel</button>
+                          <button onClick={handleAddExercise} disabled={!exerciseName || sets.every(s => !s.weight || !s.reps)}
+                            className="flex-1 bg-neon text-black font-bold py-2 rounded-lg hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed">Save</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          )}
+
+          {/* ====== HISTORY TAB ====== */}
+          {activeTab === 'history' && (
+            <div className="animate-fade-in space-y-4">
+              <div className="space-y-2">
+                <input type="text" value={historySearch} onChange={(e) => setHistorySearch(e.target.value)}
+                  placeholder="Search exercise..." className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none" />
+                <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                  {['All', 'Chest', 'Back', 'Legs', 'Shoulders', 'Arms', 'Abs', 'Other'].map(part => (
+                    <button key={part} onClick={() => setBodyPartFilter(part)}
+                      className={`whitespace-nowrap px-3 py-1 rounded-full text-xs font-bold border transition-colors ${bodyPartFilter === part ? 'bg-neon text-black border-neon' : 'bg-transparent text-gray-400 border-gray-600 hover:border-gray-400'}`}>
+                      {part}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-2">
+                {history.length === 0 ? (
+                  <div className="text-center text-gray-500 py-10">
+                    <span className="material-symbols-outlined text-4xl mb-2 opacity-50">history</span>
+                    <p>No history found</p>
+                  </div>
+                ) : history.map((log, idx) => (
+                  <div key={idx} className="glass-card p-3 flex justify-between items-center">
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-bold text-white">{log.exercise_name}</span>
+                        {log.body_part && log.body_part !== 'Other' && (
+                          <span className="text-[10px] text-gray-500 border border-gray-700 px-1 rounded">{log.body_part}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">{log.date}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-lg text-neon">{log.weight}kg <span className="text-white text-sm">× {log.reps}</span></p>
+                      <p className="text-[10px] text-gray-500">1RM: {(log.estimated_1rm || 0).toFixed(1)}kg</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              {history.length >= historyLimit && (
+                <button onClick={() => setHistoryLimit(prev => prev + 20)}
+                  className="w-full py-2 text-xs text-gray-500 hover:text-white transition-colors">Load More...</button>
+              )}
+            </div>
+          )}
+
+          {/* ====== PROGRESS TAB ====== */}
+          {activeTab === 'progress' && (
+            <div className="animate-fade-in space-y-4">
+              <div className="glass-card p-4">
+                <h3 className="font-bold text-lg mb-3 flex items-center">
+                  <span className="material-symbols-outlined mr-2 text-neon">trending_up</span>
+                  1RM Progress
+                </h3>
+                {exerciseList.length === 0 ? (
+                  <p className="text-gray-500 text-center py-6">Record workouts to see your progress</p>
+                ) : (
+                  <>
+                    <select value={selectedExercise} onChange={(e) => setSelectedExercise(e.target.value)}
+                      className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white mb-4 outline-none"
+                      style={{ backgroundColor: '#1a1a1a' }}>
+                      {exerciseList.map(ex => (
+                        <option key={ex.name} value={ex.name} style={{ backgroundColor: '#1a1a1a' }}>
+                          {ex.name} ({ex.body_part || 'Other'})
+                        </option>
+                      ))}
+                    </select>
+                    <div style={{ height: '250px' }}>
+                      <canvas ref={progressCanvasRef}></canvas>
+                    </div>
+                    {progressData.length > 0 && (
+                      <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                        <div className="bg-white/5 rounded-lg p-2">
+                          <p className="text-[10px] text-gray-500">Start</p>
+                          <p className="text-neon font-bold">{progressData[0].estimated_1rm.toFixed(1)}kg</p>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-2">
+                          <p className="text-[10px] text-gray-500">Current</p>
+                          <p className="text-neon font-bold">{progressData[progressData.length - 1].estimated_1rm.toFixed(1)}kg</p>
+                        </div>
+                        <div className="bg-white/5 rounded-lg p-2">
+                          <p className="text-[10px] text-gray-500">Growth</p>
+                          <p className="text-neon font-bold">
+                            {progressData.length > 1
+                              ? '+' + (progressData[progressData.length - 1].estimated_1rm - progressData[0].estimated_1rm).toFixed(1) + 'kg'
+                              : '-'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* ====== AI COACH TAB ====== */}
+          {activeTab === 'coach' && (
+            <div className="animate-fade-in space-y-4">
+              <div className="glass-card p-5 border-t-2 border-purple-500">
+                <h3 className="font-bold text-lg mb-2 flex items-center">
+                  <span className="material-symbols-outlined mr-2 text-purple-400">psychology</span>
+                  AI Coach
+                </h3>
+                <p className="text-xs text-gray-400 mb-4">トレーニング履歴をAIが分析し、停滞打破のための科学的プログラムを提案します。</p>
+
+                <div className="mb-4">
+                  <label className="text-xs text-gray-500 block mb-1">Focus Exercise (optional)</label>
+                  <input type="text" value={coachExercise} onChange={(e) => setCoachExercise(e.target.value)}
+                    placeholder="e.g. Bench Press"
+                    className="w-full bg-white/5 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-purple-400 outline-none" />
+                </div>
+
+                <button onClick={askCoach} disabled={coachLoading}
+                  className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform disabled:opacity-50 flex items-center justify-center">
+                  {coachLoading ? (
+                    <><span className="material-symbols-outlined animate-spin mr-2">progress_activity</span> Analyzing...</>
+                  ) : (
+                    <><span className="material-symbols-outlined mr-2">auto_awesome</span> Get AI Advice</>
+                  )}
+                </button>
+              </div>
+
+              {coachResult && (
+                <div className="space-y-3 animate-fade-in">
+                  <div className="glass-card p-4 border-l-2 border-blue-400">
+                    <h4 className="font-bold text-sm text-blue-400 mb-1">📊 Analysis</h4>
+                    <p className="text-sm text-gray-300">{coachResult.analysis}</p>
+                  </div>
+                  <div className="glass-card p-4 border-l-2 border-neon">
+                    <h4 className="font-bold text-sm text-neon mb-1">💡 Advice</h4>
+                    <p className="text-sm text-gray-300">{coachResult.advice}</p>
+                  </div>
+                  {coachResult.program && coachResult.program.length > 0 && (
+                    <div className="glass-card p-4 border-l-2 border-purple-400">
+                      <h4 className="font-bold text-sm text-purple-400 mb-3">📋 Suggested Program</h4>
+                      <div className="space-y-2">
+                        {coachResult.program.map((p, idx) => (
+                          <div key={idx} className="bg-white/5 rounded-lg p-3">
+                            <div className="flex justify-between items-start">
+                              <span className="font-bold text-white">{p.exercise}</span>
+                              <span className="text-xs text-neon">{p.sets} × {p.reps}</span>
+                            </div>
+                            <p className="text-xs text-gray-400 mt-1">{p.weight_guide}</p>
+                            {p.note && <p className="text-xs text-purple-300 mt-1">💎 {p.note}</p>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // 5. Notifications View
+    const Notifications = () => {
+      const { currentUser } = React.useContext(UserContext);
+      const [notifs, setNotifs] = useState([]);
+
+      useEffect(() => {
+        const fetchNotifs = async () => {
+          const res = await fetch(`/notifications?current_user=${encodeURIComponent(currentUser)}`);
+          if (res.ok) setNotifs(await res.json());
+        };
+        fetchNotifs();
+      }, [currentUser]);
+
+      const markRead = async () => {
+        await fetch(`/notifications/read?current_user=${encodeURIComponent(currentUser)}`, { method: 'POST' });
+        // Optimistic update
+        setNotifs(prev => prev.map(n => ({ ...n, is_read: true })));
+      };
+
+      return (
+        <div className="p-4 max-w-md mx-auto animate-fade-in pb-24">
+          <header className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-bold">Notifications</h2>
+            <button onClick={markRead} className="text-xs text-neon border border-neon/50 px-3 py-1 rounded-full">Mark all read</button>
+          </header>
+          <div className="space-y-2">
+            {notifs.length === 0 && <p className="text-gray-500 text-center py-10">No notifications</p>}
+            {notifs.map(n => (
+              <div key={n.id} className={`glass-card p-4 flex items-start space-x-3 ${!n.is_read ? 'border-l-4 border-l-neon bg-neon/5' : ''}`}>
+                <span className="material-symbols-outlined text-neon mt-1">
+                  {n.type === 'follow' ? 'person_add' : 'notifications'}
+                </span>
+                <div>
+                  <p className="text-sm">
+                    <span className="font-bold text-white">{n.from_user}</span>
+                    {n.type === 'follow' ? ' followed you!' : ' sent a notification.'}
+                  </p>
+                  <p className="text-xs text-gray-500 mt-1">{new Date(n.created_at).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    };
+
+    // 6. Friends View
+    const Friends = ({ onProfileClick }) => {
+      const { currentUser } = React.useContext(UserContext);
+      const [search, setSearch] = useState('');
+      const [searchResults, setSearchResults] = useState([]);
+      const [relations, setRelations] = useState({ following: [], followers: [] });
+      const [feed, setFeed] = useState([]);
+      const [activeSubTab, setActiveSubTab] = useState('feed'); // 'feed', 'following', 'followers', 'search'
+
+      useEffect(() => {
+        fetchRelations();
+        fetchFeed();
+      }, [currentUser]);
+
+      const fetchRelations = async () => {
+        const res = await fetch(`/friends?current_user=${encodeURIComponent(currentUser)}`);
+        if (res.ok) setRelations(await res.json());
+      };
+
+      const fetchFeed = async () => {
+        const res = await fetch(`/api/activity/feed?current_user=${encodeURIComponent(currentUser)}`);
+        if (res.ok) setFeed(await res.json());
+      };
+
+      const handleSearch = async (val) => {
+        setSearch(val);
+        if (val.length > 1) {
+          const res = await fetch(`/users/search?q=${encodeURIComponent(val)}`);
+          if (res.ok) setSearchResults(await res.json());
+        } else {
+          setSearchResults([]);
+        }
+      };
+
+      const followUser = async (name) => {
+        await fetch(`/friends?current_user=${encodeURIComponent(currentUser)}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ friend_username: name })
+        });
+        fetchRelations();
+        fetchFeed();
+      };
+
+      const unfollowUser = async (name) => {
+        await fetch(`/friends/${encodeURIComponent(name)}?current_user=${encodeURIComponent(currentUser)}`, {
+          method: 'DELETE'
+        });
+        fetchRelations();
+        fetchFeed();
+      };
+
+      return (
+        <div className="p-4 animate-fade-in pb-24 max-w-2xl mx-auto">
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neon to-emerald-400 mb-6">Social</h2>
+
+          {/* Sub-Tabs */}
+          <div className="flex space-x-2 mb-6 bg-black/40 p-1 rounded-xl glass-card text-xs">
+            {['feed', 'following', 'followers', 'search'].map(t => (
+              <button
+                key={t}
+                onClick={() => setActiveSubTab(t)}
+                className={`flex-1 py-2 rounded-lg transition-all capitalize ${activeSubTab === t ? 'bg-neon text-black font-bold shadow-[0_0_10px_rgba(157,255,0,0.4)]' : 'text-gray-400'}`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+
+          {activeSubTab === 'search' && (
+            <div className="space-y-4">
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-3 top-2.5 text-gray-500">search</span>
+                <input
+                  type="text"
+                  placeholder="Search users..."
+                  value={search}
+                  onChange={(e) => handleSearch(e.target.value)}
+                  className="w-full bg-black/40 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 outline-none focus:border-neon transition-colors"
+                />
+              </div>
+              <div className="space-y-2">
+                {searchResults.map(u => (
+                  <div key={u} className="glass-card p-4 flex items-center justify-between animate-fade-in">
+                    <button onClick={() => onProfileClick(u)} className="font-bold hover:text-neon transition-colors">{u}</button>
+                    {u !== currentUser && (
+                      relations.following.includes(u) ?
+                        <button onClick={() => unfollowUser(u)} className="text-xs bg-white/10 px-3 py-1.5 rounded-lg">Unfollow</button> :
+                        <button onClick={() => followUser(u)} className="text-xs bg-neon text-black font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-transform">Follow</button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {activeSubTab === 'feed' && (
+            <div className="space-y-4">
+              {feed.length === 0 && <p className="text-center text-gray-500 py-10">No recent activity</p>}
+              {feed.map((a, i) => (
+                <div key={i} className="glass-card p-4 border-l-2 border-l-neon/50 animate-fade-in">
+                  <div className="flex items-center space-x-2 mb-1 text-xs">
+                    <button onClick={() => onProfileClick(a.user_id)} className="font-bold text-neon hover:underline">{a.user_id}</button>
+                    <span className="text-gray-500">•</span>
+                    <span className="text-gray-400">{a.date}</span>
+                  </div>
+                  <p className="text-sm text-gray-200">
+                    <span className="material-symbols-outlined text-[14px] align-middle mr-1 text-neon/70">
+                      {a.type === 'workout' ? 'fitness_center' : 'restaurant'}
+                    </span>
+                    {a.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(activeSubTab === 'following' || activeSubTab === 'followers') && (
+            <div className="space-y-2">
+              {relations[activeSubTab].length === 0 && <p className="text-center text-gray-500 py-10">No users found</p>}
+              {relations[activeSubTab].map(u => (
+                <div key={u} className="glass-card p-4 flex items-center justify-between animate-fade-in">
+                  <button onClick={() => onProfileClick(u)} className="font-bold hover:text-neon transition-colors">
+                    {u}
+                    {relations.following.includes(u) && relations.followers.includes(u) &&
+                      <span className="ml-2 text-[10px] bg-neon/10 text-neon px-1.5 py-0.5 rounded border border-neon/20">相互</span>
+                    }
+                  </button>
+                  {u !== currentUser && relations.following.includes(u) && (
+                    <button onClick={() => unfollowUser(u)} className="text-xs text-gray-500 hover:text-white">Unfollow</button>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    // 7. User Profile View (Limited Dashboard)
+    const UserProfile = ({ username, onBack }) => {
+      const { currentUser } = React.useContext(UserContext);
+      const [profile, setProfile] = useState(null);
+      const [loading, setLoading] = useState(true);
+
+      useEffect(() => {
+        fetch(`/users/${encodeURIComponent(username)}?current_user=${encodeURIComponent(currentUser)}`)
+          .then(r => r.json())
+          .then(d => {
+            setProfile(d);
+            setLoading(false);
+          });
+      }, [username, currentUser]);
+
+      if (loading) return <div className="p-20 text-center text-neon animate-pulse">Loading Profile...</div>;
+
+      const follow = async () => {
+        await fetch(`/friends?current_user=${encodeURIComponent(currentUser)}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ friend_username: username })
         });
-        if (res.ok) {
-          alert(username + ' をフォローしました');
-          loadFriends();
-          searchUsers(); // リロード
-        } else {
-          alert('工ラー');
-        }
-      }
+        setProfile(p => ({ ...p, is_following: true }));
+      };
 
-      async function loadFriends() {
-        const res = await fetch(`${apiBase}/friends?current_user=${encodeURIComponent(currentUser)}`);
-        const data = await res.json();
-
-        document.getElementById('followingCount').textContent = `(${data.following.length})`;
-        document.getElementById('followersCount').textContent = `(${data.followers.length})`;
-
-        const followingList = document.getElementById('followingList');
-        followingList.innerHTML = '';
-        data.following.forEach(u => {
-          const li = document.createElement('li');
-          li.style.padding = '8px';
-          li.style.borderBottom = '1px solid var(--border)';
-          li.style.display = 'flex';
-          li.style.justifyContent = 'space-between';
-          li.innerHTML = `<span>${u}</span> <button class="danger" onclick="removeFriend('${u}')" style="width:auto; font-size:12px;">解除</button>`;
-          followingList.appendChild(li);
-        });
-
-        const followersList = document.getElementById('followersList');
-        followersList.innerHTML = '';
-        data.followers.forEach(u => {
-          const li = document.createElement('li');
-          li.style.padding = '8px';
-          li.style.borderBottom = '1px solid var(--border)';
-          li.innerHTML = `<span>${u}</span>`;
-          followersList.appendChild(li);
-        });
-      }
-
-      async function removeFriend(username) {
-        if (!confirm(username + ' のフォローを解除しますか？')) return;
-        const res = await fetch(`${apiBase}/friends/${username}?current_user=${encodeURIComponent(currentUser)}`, {
+      const unfollow = async () => {
+        await fetch(`/friends/${encodeURIComponent(username)}?current_user=${encodeURIComponent(currentUser)}`, {
           method: 'DELETE'
         });
-        if (res.ok) loadFriends();
-      }
+        setProfile(p => ({ ...p, is_following: false }));
+      };
 
-      async function updateVisibilitySetting() {
-        const val = document.querySelector('input[name="visibility"]:checked').value;
-        const labels = ['visPublic', 'visFriends', 'visPrivate'];
-        labels.forEach(id => document.getElementById(id).classList.remove('active'));
+      return (
+        <div className="p-4 animate-fade-in pb-24 max-w-md mx-auto">
+          <button onClick={onBack} className="mb-4 flex items-center text-gray-400 hover:text-white transition-colors">
+            <span className="material-symbols-outlined mr-1">arrow_back</span> Back
+          </button>
 
-        if (val === 'public') document.getElementById('visPublic').classList.add('active');
-        if (val === 'friends') document.getElementById('visFriends').classList.add('active');
-        if (val === 'private') document.getElementById('visPrivate').classList.add('active');
+          <div className="glass-card p-6 mb-6 text-center">
+            <div className="w-20 h-20 bg-gradient-to-br from-neon to-emerald-400 rounded-full mx-auto mb-4 flex items-center justify-center text-3xl font-bold text-black border-4 border-white/10">
+              {username[0].toUpperCase()}
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-1">{username}</h2>
+            <p className="text-xs text-gray-500 mb-4">{profile.visibility} profile</p>
 
-        await fetch(`${apiBase}/settings/visibility?current_user=${encodeURIComponent(currentUser)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ visibility: val })
-        });
-      }
+            <div className="flex justify-center space-x-6 mb-6">
+              <div className="text-center">
+                <div className="text-xl font-bold text-neon">{profile.stats.workouts}</div>
+                <div className="text-[10px] text-gray-500 uppercase tracking-wider">Workouts</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold text-neon">{profile.stats.meals}</div>
+                <div className="text-[10px] text-gray-500 uppercase tracking-wider">Meals</div>
+              </div>
+            </div>
 
-      // --- 食事管理機能 ---
+            {username !== currentUser && (
+              <button
+                onClick={profile.is_following ? unfollow : follow}
+                className={`w-full py-2.5 rounded-xl font-bold transition-all active:scale-95 ${profile.is_following ? 'bg-white/10 text-white border border-white/20' : 'bg-neon text-black shadow-[0_4px_15px_rgba(157,255,0,0.3)]'}`}
+              >
+                {profile.is_following ? 'Following' : 'Follow'}
+              </button>
+            )}
+            {profile.is_follower && <p className="text-[10px] text-neon/60 mt-2 font-bold italic">Follows you</p>}
+          </div>
 
-      async function estimateNutrition() {
-        const text = document.getElementById('foodName').value;
-        if (!text) return alert("食べ物の名前を入力してください");
+          {profile.visibility === 'private' && (
+            <div className="text-center p-8 bg-black/20 rounded-2xl border border-white/5">
+              <span className="material-symbols-outlined text-4xl text-gray-600 mb-2">lock</span>
+              <p className="text-sm text-gray-500">This account is private.</p>
+            </div>
+          )}
 
-        const btn = document.querySelector('button[onclick="estimateNutrition()"]');
-        btn.textContent = "考え中...";
-        btn.disabled = true;
+          {profile.visibility !== 'private' && (
+            <div className="glass-card p-4">
+              <h3 className="text-sm font-bold text-gray-400 mb-4 flex items-center">
+                <span className="material-symbols-outlined text-sm mr-1">monitoring</span>
+                Latest Activity (Coming Soon)
+              </h3>
+              <p className="text-xs text-gray-600 text-center py-4 italic">Individual activity display will be enabled when privacy checks for each post are added.</p>
+            </div>
+          )}
+        </div>
+      );
+    };
 
-        try {
-          const res = await fetch(`${apiBase}/api/estimate_nutrition`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: text })
-          });
-          const data = await res.json();
+    // 5. Settings View
+    const Settings = () => {
+      const { currentUser, bumpSettings } = React.useContext(UserContext);
+      const [targets, setTargets] = useState({
+        cal: 2000, p: 60, f: 60, c: 300, salt: 7.0, fiber: 20.0
+      });
 
-          document.getElementById('mealCal').value = data.calories;
-          document.getElementById('mealPro').value = data.protein;
-          document.getElementById('mealFat').value = data.fat;
-          document.getElementById('mealCarb').value = data.carbs;
-
-          const badge = document.getElementById('estimateBadge');
-          badge.style.display = 'block';
-          badge.textContent = `ソース: ${data.source} (${data.food_name})`;
-
-        } catch (e) {
-          alert("推定に失敗しました");
-          console.error(e);
-        } finally {
-          btn.textContent = "🪄 AI推定";
-          btn.disabled = false;
-        }
-      }
-
-      async function addMeal() {
-        const date = document.getElementById('mealDate').value;
-        const type = document.getElementById('mealType').value;
-        const name = document.getElementById('foodName').value;
-        const cal = document.getElementById('mealCal').value;
-        const p = document.getElementById('mealPro').value;
-        const f = document.getElementById('mealFat').value;
-        const c = document.getElementById('mealCarb').value;
-
-        if (!name || !date) return alert("日付と食事名は必須です");
-
-        const body = {
-          user_id: currentUser,
-          date: date,
-          meal_type: type,
-          food_name: name,
-          calories: parseInt(cal) || 0,
-          protein: parseFloat(p) || 0,
-          fat: parseFloat(f) || 0,
-          carbs: parseFloat(c) || 0
-        };
-
-        const res = await fetch(`${apiBase}/meals`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-
-        if (res.ok) {
-          alert('食事を記録しました！');
-          // フォームクリア
-          document.getElementById('foodName').value = '';
-          document.getElementById('mealCal').value = '';
-          document.getElementById('mealPro').value = '';
-          document.getElementById('mealFat').value = '';
-          document.getElementById('mealCarb').value = '';
-          document.getElementById('estimateBadge').style.display = 'none';
-          loadMeals();
-        } else {
-          alert('エラーが発生しました');
-        }
-      }
-
-      async function loadMeals() {
-        const date = document.getElementById('mealDate').value;
-        if (!date) return;
-
-        const res = await fetch(`${apiBase}/meals?user_id=${encodeURIComponent(currentUser)}&date=${date}`);
-        const meals = await res.json();
-
-        const list = document.getElementById('mealList');
-        list.innerHTML = '';
-
-        let totalCal = 0;
-        let totalP = 0, totalF = 0, totalC = 0;
-
-        meals.forEach(m => {
-          totalCal += m.calories;
-          totalP += m.protein;
-          totalF += m.fat;
-          totalC += m.carbs;
-
-          const li = document.createElement('li');
-          li.className = 'card';
-          li.style.marginBottom = '10px';
-          li.style.padding = '10px';
-          li.innerHTML = `
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-weight:bold; color:var(--accent); margin-right:5px;">${m.meal_type}</span>
-                        <span style="font-weight:bold;">${m.food_name}</span>
-                        <br>
-                        <span style="font-size:0.9em; color:var(--text-light);">
-                            ${m.calories}kcal (P:${m.protein}g F:${m.fat}g C:${m.carbs}g)
-                        </span>
-                    </div>
-                    <button class="danger" onclick="deleteMeal(${m.id})" style="width:auto; padding:5px 10px;">削除</button>
-                </div>
-            `;
-          list.appendChild(li);
-        });
-
-        // チャートなどを更新
-        updateDashboard(totalCal, totalP, totalF, totalC);
-      }
-
-      // --- ユーザー目標管理・Dashboard ---
-      let userTargets = { cal: 2000, p: 60, f: 60, c: 300 };
-      let chartInstance = null;
-
-      async function loadUserInfo() {
-        const res = await fetch(`${apiBase}/users/me?current_user=${encodeURIComponent(currentUser)}`);
-        const data = await res.json();
-        if (data.target_calories) {
-          userTargets = {
-            cal: data.target_calories,
-            p: data.target_protein,
-            f: data.target_fat,
-            c: data.target_carbs
-          };
-
-          // 設定画面に反映
-          document.getElementById('targetCal').value = userTargets.cal;
-          document.getElementById('targetPro').value = userTargets.p;
-          document.getElementById('targetFat').value = userTargets.f;
-          document.getElementById('targetCarb').value = userTargets.c;
-
-          // 公開設定もここで反映できるが、個別APIでやってるので割愛（もしくは統合してもいい）
-        }
-      }
-
-      async function saveTargets() {
-        const t = {
-          target_calories: parseInt(document.getElementById('targetCal').value) || 2000,
-          target_protein: parseFloat(document.getElementById('targetPro').value) || 60,
-          target_fat: parseFloat(document.getElementById('targetFat').value) || 60,
-          target_carbs: parseFloat(document.getElementById('targetCarb').value) || 300,
-        };
-
-        await fetch(`${apiBase}/settings/targets?current_user=${encodeURIComponent(currentUser)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(t)
-        });
-        userTargets = { cal: t.target_calories, p: t.target_protein, f: t.target_fat, c: t.target_carbs };
-        alert("目標を保存しました！");
-      }
-
-      function updateDashboard(cal, p, f, c) {
-        // カロリーバー
-        const calPercent = Math.min((cal / userTargets.cal) * 100, 100);
-        document.getElementById('calProgressBar').style.width = `${calPercent}%`;
-        document.getElementById('calProgressText').textContent = `${cal} / ${userTargets.cal} kcal`;
-
-        // 色を変える（超過したら赤とか）
-        if (cal > userTargets.cal) {
-          document.getElementById('calProgressBar').style.backgroundColor = '#ff0055';
-        } else {
-          document.getElementById('calProgressBar').style.backgroundColor = 'var(--accent)';
-        }
-
-        // PFC チャート
-        const ctx = document.getElementById('pfcChart').getContext('2d');
-        if (chartInstance) chartInstance.destroy();
-
-        // 目標に対する達成率 (%)
-        const pRate = (p / userTargets.p) * 100;
-        const fRate = (f / userTargets.f) * 100;
-        const cRate = (c / userTargets.c) * 100;
-
-        // スコア計算 (適当なロジック: 100%に近いほど良い)
-        // 偏差の絶対値の平均を引くイメージ
-        const diffP = Math.abs(100 - pRate);
-        const diffF = Math.abs(100 - fRate);
-        const diffC = Math.abs(100 - cRate);
-        const avgDiff = (diffP + diffF + diffC) / 3;
-        let score = Math.max(0, 100 - avgDiff);
-        if (cal === 0) score = 0; // まだ食べてない
-
-        document.getElementById('scoreDisplay').textContent = `${Math.floor(score)}点`;
-
-        chartInstance = new Chart(ctx, {
-          type: 'radar',
-          data: {
-            labels: ['Protein', 'Fat', 'Carbs'],
-            datasets: [{
-              label: '達成率 (%)',
-              data: [pRate, fRate, cRate],
-              backgroundColor: 'rgba(175, 252, 65, 0.2)',
-              borderColor: '#affc41',
-              pointBackgroundColor: '#affc41',
-              borderWidth: 2
-            }]
-          },
-          options: {
-            scales: {
-              r: {
-                angleLines: { color: '#333' },
-                grid: { color: '#333' },
-                pointLabels: { color: '#fff', font: { size: 12 } },
-                suggestedMin: 0,
-                suggestedMax: 100,
-                ticks: { display: false }
-              }
-            },
-            plugins: {
-              legend: { display: false }
-            },
-            maintainAspectRatio: false
-          }
-        });
-
-        // アドバイス生成
-        const advices = [];
-        if (pRate < 80) advices.push("タンパク質が不足しています。鶏肉や卵を食べましょう！");
-        if (pRate > 150) advices.push("タンパク質を摂りすぎています。腎臓に気をつけて。");
-        if (fRate > 120) advices.push("脂質が高めです。揚げ物は控えましょう。");
-        if (cRate < 50) advices.push("エネルギー不足かも。炭水化物もしっかり摂りましょう。");
-        if (cal > userTargets.cal * 1.1) advices.push("カロリーオーバー！明日は少し運動量を増やしましょう。");
-        if (advices.length === 0 && cal > 0) advices.push("素晴らしいバランスです！この調子で続けましょう！");
-        if (cal === 0) advices.push("まだ記録がありません。何か食べましたか？");
-
-        document.getElementById('adviceDisplay').textContent = advices.join("\n");
-      }
-
-      async function deleteMeal(id) {
-        if (!confirm('削除しますか？')) return;
-        const res = await fetch(`${apiBase}/meals/${id}`, { method: 'DELETE' });
-        if (res.ok) loadMeals();
-      }
-
-      // --- 体重管理機能 ---
-      let weightChartInstance = null;
-
-      async function addWeight() {
-        const date = document.getElementById('weightDate').value;
-        const weight = document.getElementById('weightInput').value;
-
-        if (!date || !weight) return alert("日付と体重を入力してください");
-
-        const res = await fetch(`${apiBase}/weights`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: currentUser, date, weight: parseFloat(weight) })
-        });
-
-        if (res.ok) {
-          alert('体重を記録しました！');
-          document.getElementById('weightInput').value = '';
-          loadWeightHistory();
-        } else {
-          alert('記録に失敗しました');
-        }
-      }
-
-      async function loadWeightHistory() {
-        const res = await fetch(`${apiBase}/weights?user_id=${encodeURIComponent(currentUser)}`);
-        const data = await res.json();
-        renderWeightChart(data);
-
-        const summary = document.getElementById('weightSummary');
-        if (data.length >= 2) {
-          const latest = data[data.length - 1];
-          const prev = data[data.length - 2];
-          const diff = (latest.weight - prev.weight).toFixed(1);
-          const diffText = diff > 0 ? `+${diff}` : diff;
-          summary.textContent = `最新: ${latest.weight}kg (前回比 ${diffText}kg)`;
-        } else if (data.length === 1) {
-          summary.textContent = `最新: ${data[0].weight}kg (最初の記録)`;
-        } else {
-          summary.textContent = "まだ記録がありません。";
-        }
-      }
-
-      function renderWeightChart(data) {
-        const ctx = document.getElementById('weightChart').getContext('2d');
-        if (weightChartInstance) weightChartInstance.destroy();
-
-        weightChartInstance = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: data.map(d => d.date),
-            datasets: [{
-              label: '体重 (kg)',
-              data: data.map(d => d.weight),
-              borderColor: '#affc41',
-              backgroundColor: 'rgba(175, 252, 65, 0.1)',
-              borderWidth: 3,
-              tension: 0.3,
-              fill: true,
-              pointBackgroundColor: '#affc41',
-              pointRadius: 4
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              y: {
-                grid: { color: '#334155' },
-                ticks: { color: '#94a3b8' },
-                suggestedMin: Math.min(...data.map(d => d.weight)) - 2,
-                suggestedMax: Math.max(...data.map(d => d.weight)) + 2
-              },
-              x: {
-                grid: { display: false },
-                ticks: { color: '#94a3b8' }
-              }
-            },
-            plugins: {
-              legend: { display: false }
+      useEffect(() => {
+        fetch(`/users/me?current_user=${encodeURIComponent(currentUser)}`)
+          .then(r => r.json())
+          .then(d => {
+            if (d.target_calories) {
+              setTargets({
+                cal: d.target_calories, p: d.target_protein, f: d.target_fat, c: d.target_carbs,
+                salt: d.target_salt, fiber: d.target_fiber
+              });
             }
+          });
+      }, [currentUser]);
+
+      // PFC変更時にカロリーを自動計算 (P×4 + F×9 + C×4)
+      const calcCalories = (p, f, c) => Math.round((parseFloat(p) || 0) * 4 + (parseFloat(f) || 0) * 9 + (parseFloat(c) || 0) * 4);
+
+      const handleChange = (field, val) => {
+        setTargets(prev => {
+          const next = { ...prev, [field]: val };
+          // PFCいずれかが変わったらカロリーを自動再計算
+          if (['p', 'f', 'c'].includes(field)) {
+            next.cal = calcCalories(next.p, next.f, next.c);
           }
+          return next;
         });
-      }
+      };
 
-      // 日付変更時にリスト更新
-      document.getElementById('mealDate')?.addEventListener('change', loadMeals);
+      const [saveMsg, setSaveMsg] = useState('');
 
-    </script>
-    <script src="/static/pwa-init.js"></script>
-    <style>
-      @keyframes slideUp {
-        from {
-          transform: translateX(-50%) translateY(100px);
-          opacity: 0;
+      const handleSave = async () => {
+        const computedCal = calcCalories(targets.p, targets.f, targets.c);
+        const body = {
+          target_calories: computedCal,
+          target_protein: parseFloat(targets.p),
+          target_fat: parseFloat(targets.f),
+          target_carbs: parseFloat(targets.c),
+          target_salt: parseFloat(targets.salt),
+          target_fiber: parseFloat(targets.fiber)
+        };
+        try {
+          await fetch(`/settings/targets?current_user=${encodeURIComponent(currentUser)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+          });
+          setSaveMsg('✅ Saved!');
+          setTimeout(() => setSaveMsg(''), 2000);
+          if (bumpSettings) bumpSettings();
+        } catch (e) {
+          setSaveMsg('❌ Error: ' + e.message);
+          setTimeout(() => setSaveMsg(''), 3000);
         }
+      };
 
-        to {
-          transform: translateX(-50%) translateY(0);
-          opacity: 1;
+      return (
+        <div className="p-4 max-w-md mx-auto animate-fade-in pb-24">
+          <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-neon to-emerald-400 mb-6">Settings</h2>
+
+          <div className="glass-card p-5 space-y-4">
+            <h3 className="font-bold border-b border-white/10 pb-2 mb-2">Daily Goals</h3>
+
+            {/* カロリー（PFCから自動計算） */}
+            <div className="bg-gradient-to-r from-neon/10 to-emerald-500/10 border border-neon/30 rounded-lg p-3 mb-2">
+              <label className="text-xs text-neon block mb-1">Target Calories (auto-calculated)</label>
+              <p className="text-2xl font-bold text-neon">{calcCalories(targets.p, targets.f, targets.c)} <span className="text-sm text-gray-400">kcal</span></p>
+              <p className="text-[10px] text-gray-500 mt-1">= P({targets.p}g)×4 + F({targets.f}g)×9 + C({targets.c}g)×4</p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              {[
+                { l: 'Protein', f: 'p', u: 'g' },
+                { l: 'Fat', f: 'f', u: 'g' },
+                { l: 'Carbs', f: 'c', u: 'g' },
+                { l: 'Salt', f: 'salt', u: 'g' },
+                { l: 'Fiber', f: 'fiber', u: 'g' },
+              ].map(t => (
+                <div key={t.f}>
+                  <label className="text-xs text-gray-500 block mb-1">{t.l}</label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      value={targets[t.f]}
+                      onChange={(e) => handleChange(t.f, e.target.value)}
+                      className="w-full bg-black/30 border border-white/10 rounded px-3 py-2 text-sm text-white focus:border-neon outline-none"
+                    />
+                    <span className="absolute right-3 top-2 text-xs text-gray-500">{t.u}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="pt-2">
+              <button
+                onClick={handleSave}
+                className="w-full bg-neon text-black font-bold py-3 rounded-xl hover:scale-[1.02] transition-transform flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-base">save</span>
+                Update Targets
+              </button>
+              {saveMsg && (
+                <div className="mt-2 text-center text-sm font-bold animate-bounce text-neon">
+                  {saveMsg}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="glass-card p-4 mt-6 opacity-50">
+            <h3 className="text-sm font-bold text-gray-400 mb-2">Account Info</h3>
+            <p className="text-xs text-gray-500">User ID: {currentUser}</p>
+            <p className="text-xs text-gray-500">Version: React Migration v2.0</p>
+          </div>
+        </div>
+      );
+    };
+
+    // --- Main App ---
+    const App = () => {
+      const [currentTab, setCurrentTab] = useState('dashboard');
+      const [showNotifs, setShowNotifs] = useState(false);
+      const [profileUser, setProfileUser] = useState(null);
+      const [settingsVersion, setSettingsVersion] = useState(0);
+      const bumpSettings = () => setSettingsVersion(v => v + 1);
+      const params = new URLSearchParams(window.location.search);
+      const currentUser = params.get('user') || 'user1';
+
+      // Render active view
+      const renderContent = () => {
+        if (showNotifs) return <Notifications />;
+        switch (currentTab) {
+          case 'dashboard': return <Dashboard setShowNotifs={setShowNotifs} />;
+          case 'record': return <Record />;
+          case 'workout': return <Workout />;
+          case 'friends': return <Friends onProfileClick={(u) => { setProfileUser(u); setCurrentTab('profile'); }} />;
+          case 'profile': return <UserProfile username={profileUser} onBack={() => setCurrentTab('friends')} />;
+          case 'settings': return <Settings />;
+          default: return <Dashboard setShowNotifs={setShowNotifs} />;
         }
-      }
-    </style>
+      };
+
+      // Pass setShowNotifs to Dashboard via Context or Props? 
+      // For simplicity let's clone element or modify Dashboard props.
+      // Actually modifying Dashboard definition above to accept props is cleaner.
+      // But since Dashboard is defined outside, I need to update it too. 
+      // Wait, I can't easily update Dashboard params in this replace. 
+      // I'll update Dashboard in a separate chunk or rely on Context.
+
+      return (
+        <UserContext.Provider value={{ currentUser, setShowNotifs, settingsVersion, bumpSettings }}>
+          <div className="min-h-screen text-white pb-20">
+            <main>
+              {/* Header override for Notifs back button */}
+              {showNotifs && (
+                <button onClick={() => setShowNotifs(false)} className="absolute top-4 left-4 z-50 bg-black/50 p-2 rounded-full">
+                  <span className="material-symbols-outlined">arrow_back</span>
+                </button>
+              )}
+              {renderContent()}
+            </main>
+            {!showNotifs && <NavBar activeTab={currentTab} setTab={setCurrentTab} />}
+          </div>
+        </UserContext.Provider>
+      );
+    };
+
+    // Update Dashboard to receive setShowNotifs from Context
+    // Redefining Dashboard here to make it work would be redundant if I don't remove the old one.
+    // I will assume I can update Dashboard header in next step or use Context inside Dashboard.
+
+    // Actually, I should just modify Dashboard to use useContext(UserContext).
+    // Let's do that in a separate replace for Dashboard header.
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
 </body>
 
 </html>

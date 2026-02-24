@@ -28,10 +28,7 @@ function dismissInstallPrompt() {
 // Service Worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    // Detect if we are in Edo version (based on manifest link or URL, but manifest title is easiest)
-    const isEdo = document.querySelector('link[href*="manifest_edo.json"]') !== null;
-    const swFile = isEdo ? '/static/sw_edo.js' : '/static/sw.js';
-
+    const swFile = '/static/sw.js';
     navigator.serviceWorker.register(swFile)
       .then(reg => console.log(`SW registered (${swFile}):`, reg.scope))
       .catch(err => console.log('SW failed:', err));

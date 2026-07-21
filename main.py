@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Query, HTTPException, Request
-from pydantic import BaseModel
-from typing import Optional, List
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Literal, Optional, List
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -48,75 +48,90 @@ async def read_index():
     return FileResponse('static/index.html')
 
 # データモデル定義
-class UserCreate(BaseModel):
-    username: str
-    password: str
+DATE_PATTERN = r"^\d{4}-\d{2}-\d{2}$"
+USERNAME_PATTERN = r"^[\w.-]+$"
 
-class UserSettings(BaseModel):
-    visibility: str # 'public', 'friends', 'private'
 
-class UserTargets(BaseModel):
-    target_calories: int
-    target_protein: float
-    target_fat: float
-    target_carbs: float
-    target_salt: float = 7.0
-    target_fiber: float = 20.0
+class ValidatedModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
 
-class FriendRequest(BaseModel):
-    friend_username: str
+    @field_validator("*", mode="before")
+    @classmethod
+    def reject_control_characters(cls, value):
+        if isinstance(value, str) and any(ord(char) < 32 and char not in "\t\n\r" for char in value):
+            raise ValueError("制御文字は使用できません")
+        return value
 
-class Memo(BaseModel):
-    user_id: str
-    date: str
-    exercise: str
-    weight: float
-    reps: int
-    note: str
 
-class Meal(BaseModel):
-    user_id: str
-    date: str
-    meal_type: str # 'Breakfast', 'Lunch', 'Dinner', 'Snack'
-    food_name: str
-    calories: int
-    protein: float
-    fat: float
-    carbs: float
-    salt: float = 0.0
-    fiber: float = 0.0
+class UserCreate(ValidatedModel):
+    username: str = Field(min_length=3, max_length=32, pattern=USERNAME_PATTERN)
+    password: str = Field(min_length=8, max_length=128)
 
-class WeightLog(BaseModel):
-    user_id: str
-    date: str
-    weight: float
+class UserSettings(ValidatedModel):
+    visibility: Literal["public", "friends", "private"]
 
-class EstimationRequest(BaseModel):
-    text: str
+class UserTargets(ValidatedModel):
+    target_calories: int = Field(ge=500, le=10_000)
+    target_protein: float = Field(ge=0, le=1_000, allow_inf_nan=False)
+    target_fat: float = Field(ge=0, le=1_000, allow_inf_nan=False)
+    target_carbs: float = Field(ge=0, le=2_000, allow_inf_nan=False)
+    target_salt: float = Field(default=7.0, ge=0, le=100, allow_inf_nan=False)
+    target_fiber: float = Field(default=20.0, ge=0, le=500, allow_inf_nan=False)
 
-class AdviceRequest(BaseModel):
-    meals: list
-    targets: dict
+class FriendRequest(ValidatedModel):
+    friend_username: str = Field(min_length=3, max_length=32, pattern=USERNAME_PATTERN)
+
+class Memo(ValidatedModel):
+    user_id: str = Field(min_length=3, max_length=32, pattern=USERNAME_PATTERN)
+    date: str = Field(pattern=DATE_PATTERN)
+    exercise: str = Field(min_length=1, max_length=100)
+    weight: float = Field(ge=0, le=1_000, allow_inf_nan=False)
+    reps: int = Field(ge=1, le=10_000)
+    note: str = Field(default="", max_length=2_000)
+
+class Meal(ValidatedModel):
+    user_id: str = Field(min_length=3, max_length=32, pattern=USERNAME_PATTERN)
+    date: str = Field(pattern=DATE_PATTERN)
+    meal_type: Literal["Breakfast", "Lunch", "Dinner", "Snack", "朝食", "昼食", "夕食", "間食"]
+    food_name: str = Field(min_length=1, max_length=200)
+    calories: int = Field(ge=0, le=20_000)
+    protein: float = Field(ge=0, le=2_000, allow_inf_nan=False)
+    fat: float = Field(ge=0, le=2_000, allow_inf_nan=False)
+    carbs: float = Field(ge=0, le=5_000, allow_inf_nan=False)
+    salt: float = Field(default=0.0, ge=0, le=500, allow_inf_nan=False)
+    fiber: float = Field(default=0.0, ge=0, le=1_000, allow_inf_nan=False)
+
+class WeightLog(ValidatedModel):
+    user_id: str = Field(min_length=3, max_length=32, pattern=USERNAME_PATTERN)
+    date: str = Field(pattern=DATE_PATTERN)
+    weight: float = Field(gt=0, le=1_000, allow_inf_nan=False)
+
+class EstimationRequest(ValidatedModel):
+    text: str = Field(min_length=1, max_length=500)
+
+class AdviceRequest(ValidatedModel):
+    meals: list[dict] = Field(max_length=100)
+    targets: dict[str, float] = Field(max_length=20)
 
 # ★ Workout Management Models ★
-class WorkoutSessionCreate(BaseModel):
-    user_id: str
-    date: str
-    duration: Optional[int] = None
-    session_memo: Optional[str] = None
+class WorkoutSessionCreate(ValidatedModel):
+    user_id: str = Field(min_length=3, max_length=32, pattern=USERNAME_PATTERN)
+    date: str = Field(pattern=DATE_PATTERN)
+    duration: Optional[int] = Field(default=None, ge=0, le=1_440)
+    session_memo: Optional[str] = Field(default=None, max_length=2_000)
 
-class WorkoutExerciseCreate(BaseModel):
-    session_id: int
-    exercise_name: str
-    exercise_memo: Optional[str] = None
-    body_part: Optional[str] = None
-    sort_order: int = 0
+class WorkoutExerciseCreate(ValidatedModel):
+    session_id: int = Field(gt=0)
+    exercise_name: str = Field(min_length=1, max_length=100)
+    exercise_memo: Optional[str] = Field(default=None, max_length=2_000)
+    body_part: Optional[Literal["Chest", "Back", "Legs", "Shoulders", "Arms", "Abs", "Other"]] = None
+    sort_order: int = Field(default=0, ge=0, le=1_000)
 
-class SetLogCreate(BaseModel):
-    workout_exercise_id: int
-    set_number: int
-    weight: float
-    reps: int
+class SetLogCreate(ValidatedModel):
+    workout_exercise_id: int = Field(gt=0)
+    set_number: int = Field(ge=1, le=1_000)
+    weight: float = Field(ge=0, le=1_000, allow_inf_nan=False)
+    reps: int = Field(ge=1, le=10_000)
 
 DB_FILE = os.environ.get("KINAPP_DB_FILE", "memo.db")
 
@@ -400,12 +415,20 @@ def nested_resource_owner(path: str, payload: dict) -> Optional[str]:
 async def require_authenticated_owner(request: Request, call_next):
     path = request.url.path
     if path in PUBLIC_PATHS or path.startswith("/static/"):
-        return await call_next(request)
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Referrer-Policy"] = "same-origin"
+        return response
 
     username = session_username(request.headers.get("Authorization"))
     if not username:
         return JSONResponse(status_code=401, content={"detail": "ログインが必要です"})
     request.state.username = username
+
+    for key, value in request.query_params.multi_items():
+        if len(key) > 100 or len(value) > 500 or any(ord(char) < 32 for char in value):
+            return JSONResponse(status_code=422, content={"detail": "クエリ文字列が不正です"})
 
     for key in IDENTITY_QUERY_PARAMS:
         claimed = request.query_params.get(key)
@@ -432,7 +455,11 @@ async def require_authenticated_owner(request: Request, call_next):
             if parent_owner is not None and parent_owner != username:
                 return JSONResponse(status_code=403, content={"detail": "この親データを変更する権限がありません"})
 
-    return await call_next(request)
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "same-origin"
+    return response
 
 # --- Workout Management API ---
 
@@ -548,7 +575,7 @@ def get_workout_history(
     user_id: str = Query(...),
     body_part: Optional[str] = Query(None),
     exercise_name: Optional[str] = Query(None),
-    limit: int = Query(20)
+    limit: int = Query(20, ge=1, le=100)
 ):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
@@ -1232,7 +1259,7 @@ def get_user_profile(username: str, current_user: str = Query(...)):
     }
 
 @app.get("/api/activity/feed")
-def get_activity_feed(current_user: str = Query(...), limit: int = 20):
+def get_activity_feed(current_user: str = Query(..., min_length=3, max_length=32, pattern=USERNAME_PATTERN), limit: int = Query(20, ge=1, le=100)):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     
@@ -1346,7 +1373,7 @@ def update_targets(targets: UserTargets, current_user: str = Query(...)):
     return {"message": "目標値を更新しました"}
 
 @app.get("/users/search")
-def search_users(q: str = Query("")):
+def search_users(q: str = Query("", max_length=50)):
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     if q:
@@ -1615,8 +1642,8 @@ def init_exercises():
 
 init_exercises()
 
-class Exercise(BaseModel):
-    name: str
+class Exercise(ValidatedModel):
+    name: str = Field(min_length=1, max_length=100)
 
 @app.get("/exercises")
 def get_exercises():

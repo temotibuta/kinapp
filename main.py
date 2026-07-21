@@ -1,12 +1,15 @@
-from fastapi import FastAPI, Query, HTTPException
+from fastapi import FastAPI, Query, HTTPException, Request
 from pydantic import BaseModel
 from typing import Optional, List
 import sqlite3
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.responses import JSONResponse
 import hashlib
+import hmac
 import os
+import secrets
 import urllib.request
 import json
 import google.generativeai as genai
@@ -115,7 +118,7 @@ class SetLogCreate(BaseModel):
     weight: float
     reps: int
 
-DB_FILE = "memo.db"
+DB_FILE = os.environ.get("KINAPP_DB_FILE", "memo.db")
 
 # 初期化関数
 def init_db():
@@ -214,6 +217,16 @@ def init_db():
         )
     ''')
 
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS auth_sessions (
+            token_hash TEXT PRIMARY KEY,
+            username TEXT NOT NULL,
+            expires_at TIMESTAMP NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (username) REFERENCES users(username) ON DELETE CASCADE
+        )
+    ''')
+
     # ★ Workout Management Tables ★
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS workout_sessions (
@@ -279,6 +292,147 @@ def estimate_body_part(exercise_name: str) -> str:
     return 'Other'
 
 init_db()
+
+PUBLIC_PATHS = {"/", "/login", "/register", "/docs", "/openapi.json", "/favicon.ico"}
+IDENTITY_QUERY_PARAMS = ("current_user", "viewer_id", "user_id")
+
+
+def hash_password(password: str, salt: Optional[str] = None) -> str:
+    """Create a versioned PBKDF2 password hash without storing the raw password."""
+    salt = salt or secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode(), bytes.fromhex(salt), 600_000)
+    return f"pbkdf2_sha256$600000${salt}${digest.hex()}"
+
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    if stored_hash.startswith("pbkdf2_sha256$"):
+        try:
+            _, rounds, salt, expected = stored_hash.split("$", 3)
+            actual = hashlib.pbkdf2_hmac(
+                "sha256", password.encode(), bytes.fromhex(salt), int(rounds)
+            ).hex()
+            return hmac.compare_digest(actual, expected)
+        except (ValueError, TypeError):
+            return False
+    # Backward compatibility; a successful login upgrades this legacy hash.
+    legacy = hashlib.sha256(password.encode()).hexdigest()
+    return hmac.compare_digest(legacy, stored_hash)
+
+
+def issue_session(username: str) -> str:
+    token = secrets.token_urlsafe(32)
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute("DELETE FROM auth_sessions WHERE expires_at <= CURRENT_TIMESTAMP")
+    cursor.execute(
+        "INSERT INTO auth_sessions (token_hash, username, expires_at) "
+        "VALUES (?, ?, datetime('now', '+30 days'))",
+        (token_hash, username),
+    )
+    conn.commit()
+    conn.close()
+    return token
+
+
+def session_username(authorization: Optional[str]) -> Optional[str]:
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    token = authorization[7:].strip()
+    if not token:
+        return None
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(
+        "SELECT username FROM auth_sessions "
+        "WHERE token_hash = ? AND expires_at > CURRENT_TIMESTAMP",
+        (token_hash,),
+    )
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else None
+
+
+def resource_owner(path: str, method: str) -> Optional[str]:
+    """Resolve owners for ID-based private resources before reads or writes."""
+    lookups = [
+        (r"^/meals/(\d+)$", "SELECT user_id FROM meals WHERE id = ?"),
+        (r"^/memo/(\d+)$", "SELECT user_id FROM memos WHERE id = ?"),
+        (r"^/api/workout/sessions/(\d+)$", "SELECT user_id FROM workout_sessions WHERE id = ?"),
+    ]
+    for pattern, query in lookups:
+        match = re.match(pattern, path)
+        if match:
+            conn = sqlite3.connect(DB_FILE)
+            cursor = conn.cursor()
+            cursor.execute(query, (int(match.group(1)),))
+            row = cursor.fetchone()
+            conn.close()
+            return row[0] if row else None
+    return None
+
+
+def nested_resource_owner(path: str, payload: dict) -> Optional[str]:
+    """Resolve the user who owns a parent referenced by a JSON payload."""
+    query = None
+    resource_id = None
+    if path == "/api/workout/exercises" and payload.get("session_id") is not None:
+        query = "SELECT user_id FROM workout_sessions WHERE id = ?"
+        resource_id = payload["session_id"]
+    elif path == "/api/workout/sets" and payload.get("workout_exercise_id") is not None:
+        query = (
+            "SELECT ws.user_id FROM workout_exercises we "
+            "JOIN workout_sessions ws ON ws.id = we.session_id WHERE we.id = ?"
+        )
+        resource_id = payload["workout_exercise_id"]
+    if query is None:
+        return None
+    conn = sqlite3.connect(DB_FILE)
+    cursor = conn.cursor()
+    cursor.execute(query, (resource_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row[0] if row else "__missing__"
+
+
+@app.middleware("http")
+async def require_authenticated_owner(request: Request, call_next):
+    path = request.url.path
+    if path in PUBLIC_PATHS or path.startswith("/static/"):
+        return await call_next(request)
+
+    username = session_username(request.headers.get("Authorization"))
+    if not username:
+        return JSONResponse(status_code=401, content={"detail": "ログインが必要です"})
+    request.state.username = username
+
+    for key in IDENTITY_QUERY_PARAMS:
+        claimed = request.query_params.get(key)
+        if claimed and claimed != username:
+            return JSONResponse(status_code=403, content={"detail": "他のユーザーとして操作できません"})
+
+    owner = resource_owner(path, request.method)
+    if owner is not None and owner != username:
+        return JSONResponse(status_code=403, content={"detail": "このデータを操作する権限がありません"})
+
+    if request.method in {"POST", "PUT", "PATCH"}:
+        content_type = request.headers.get("content-type", "")
+        if "application/json" in content_type:
+            try:
+                payload = await request.json()
+            except (ValueError, json.JSONDecodeError):
+                payload = {}
+            claimed = payload.get("user_id") if isinstance(payload, dict) else None
+            if claimed and claimed != username:
+                return JSONResponse(status_code=403, content={"detail": "他のユーザーのデータは変更できません"})
+            parent_owner = nested_resource_owner(path, payload) if isinstance(payload, dict) else None
+            if parent_owner == "__missing__":
+                return JSONResponse(status_code=404, content={"detail": "親データが見つかりません"})
+            if parent_owner is not None and parent_owner != username:
+                return JSONResponse(status_code=403, content={"detail": "この親データを変更する権限がありません"})
+
+    return await call_next(request)
 
 # --- Workout Management API ---
 
@@ -693,7 +847,9 @@ def calculate_total_volume(sets: List[dict]) -> float:
 # ユーザー登録
 @app.post("/register")
 def register_user(user: UserCreate):
-    hashed_pw = hashlib.sha256(user.password.encode()).hexdigest()
+    if len(user.username.strip()) < 3 or len(user.password) < 8:
+        raise HTTPException(status_code=400, detail="ユーザー名は3文字以上、パスワードは8文字以上必要です")
+    hashed_pw = hash_password(user.password)
     conn = sqlite3.connect(DB_FILE)
     cursor = conn.cursor()
     try:
@@ -1406,11 +1562,27 @@ def login(user: UserCreate):
     if not row:
          raise HTTPException(status_code=400, detail="ユーザー名またはパスワードが間違っています")
     
-    hashed_pw = hashlib.sha256(user.password.encode()).hexdigest()
-    if row[0] != hashed_pw:
+    if not verify_password(user.password, row[0]):
          raise HTTPException(status_code=400, detail="ユーザー名またはパスワードが間違っています")
 
-    return {"message": "ログイン成功", "username": user.username}
+    if not row[0].startswith("pbkdf2_sha256$"):
+        conn = sqlite3.connect(DB_FILE)
+        conn.execute("UPDATE users SET password = ? WHERE username = ?", (hash_password(user.password), user.username))
+        conn.commit()
+        conn.close()
+
+    return {"message": "ログイン成功", "username": user.username, "access_token": issue_session(user.username), "token_type": "bearer"}
+
+
+@app.post("/logout")
+def logout(request: Request):
+    token = request.headers.get("Authorization", "")[7:].strip()
+    token_hash = hashlib.sha256(token.encode()).hexdigest()
+    conn = sqlite3.connect(DB_FILE)
+    conn.execute("DELETE FROM auth_sessions WHERE token_hash = ?", (token_hash,))
+    conn.commit()
+    conn.close()
+    return {"message": "ログアウトしました"}
 
 # メモ削除
 @app.delete("/memo/{memo_id}")

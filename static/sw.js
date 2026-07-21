@@ -1,7 +1,8 @@
-const CACHE_NAME = 'kinapp-v9';
+const CACHE_NAME = 'kinapp-v10';
 const urlsToCache = [
     '/',
     '/static/index.html',
+    '/static/login.html',
     '/static/manifest.json',
     '/static/icon-192.png',
     '/static/icon-512.png',

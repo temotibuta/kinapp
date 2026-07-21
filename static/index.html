@@ -6,6 +6,32 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>KinApp - AI Nutrition & Workout</title>
 
+  <script>
+    // Authentication bootstrap: every same-origin API call carries the session token.
+    const kinappToken = localStorage.getItem('kinapp_access_token');
+    const kinappUser = localStorage.getItem('kinapp_username');
+    if (!kinappToken || !kinappUser) {
+      window.location.replace('/static/login.html');
+    } else {
+      const originalFetch = window.fetch.bind(window);
+      window.fetch = async (input, init = {}) => {
+        const url = typeof input === 'string' ? input : input.url;
+        const target = new URL(url, window.location.origin);
+        const headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+        if (target.origin === window.location.origin) {
+          headers.set('Authorization', `Bearer ${kinappToken}`);
+        }
+        const response = await originalFetch(input, { ...init, headers });
+        if (response.status === 401) {
+          localStorage.removeItem('kinapp_access_token');
+          localStorage.removeItem('kinapp_username');
+          window.location.replace('/static/login.html');
+        }
+        return response;
+      };
+    }
+  </script>
+
   <!-- PWA Manifest & Icons -->
   <link rel="manifest" href="/static/manifest.json">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1575,8 +1601,7 @@
       const [profileUser, setProfileUser] = useState(null);
       const [settingsVersion, setSettingsVersion] = useState(0);
       const bumpSettings = () => setSettingsVersion(v => v + 1);
-      const params = new URLSearchParams(window.location.search);
-      const currentUser = params.get('user') || 'user1';
+      const currentUser = localStorage.getItem('kinapp_username');
 
       // Render active view
       const renderContent = () => {

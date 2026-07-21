@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KinApp - ログイン</title>
+  <style>
+    :root { color-scheme: dark; font-family: Inter, "Noto Sans JP", sans-serif; }
+    * { box-sizing: border-box; }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #0f172a; color: #fff; padding: 20px; }
+    main { width: min(100%, 420px); background: #172033; border: 1px solid #334155; border-radius: 20px; padding: 28px; box-shadow: 0 24px 60px #0008; }
+    h1 { margin: 0 0 8px; color: #affc41; }
+    p { color: #94a3b8; margin: 0 0 24px; }
+    label { display: block; margin: 14px 0 6px; font-size: 14px; }
+    input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #475569; background: #0f172a; color: white; font-size: 16px; }
+    button { width: 100%; margin-top: 18px; padding: 12px; border: 0; border-radius: 10px; background: #affc41; color: #111; font-weight: 800; cursor: pointer; }
+    button.secondary { margin-top: 10px; background: transparent; color: #affc41; border: 1px solid #affc41; }
+    #message { min-height: 22px; margin-top: 14px; color: #fda4af; font-size: 14px; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>KinApp</h1>
+    <p>自分の記録を安全に管理するため、ログインしてください。</p>
+    <form id="authForm">
+      <label for="username">ユーザー名</label>
+      <input id="username" name="username" autocomplete="username" minlength="3" required>
+      <label for="password">パスワード</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" minlength="8" required>
+      <button type="submit">ログイン</button>
+      <button type="button" class="secondary" id="registerButton">新規登録</button>
+    </form>
+    <div id="message" role="alert" aria-live="polite"></div>
+  </main>
+  <script>
+    const form = document.getElementById('authForm');
+    const message = document.getElementById('message');
+
+    async function submitAuth(path) {
+      message.textContent = '';
+      const username = form.username.value.trim();
+      const password = form.password.value;
+      try {
+        let response = await fetch(path, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        let data = await response.json();
+        if (!response.ok) throw new Error(data.detail || '処理に失敗しました');
+        if (path === '/register') {
+          response = await fetch('/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+          });
+          data = await response.json();
+          if (!response.ok) throw new Error(data.detail || 'ログインに失敗しました');
+        }
+        localStorage.setItem('kinapp_access_token', data.access_token);
+        localStorage.setItem('kinapp_username', data.username);
+        window.location.replace('/');
+      } catch (error) {
+        message.textContent = error.message;
+      }
+    }
+
+    form.addEventListener('submit', event => { event.preventDefault(); submitAuth('/login'); });
+    document.getElementById('registerButton').addEventListener('click', () => submitAuth('/register'));
+  </script>
+</body>
+</html>
